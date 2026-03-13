@@ -1,0 +1,8 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /liga-padres-tenis/
+
+    # Si no pide algo dentro de /public/, redirigir
+    RewriteCond %{REQUEST_URI} !^/liga-padres-tenis/public
+    RewriteRule ^(.*)$ /liga-padres-tenis/public/$1 [R=301,L]
+</IfModule>

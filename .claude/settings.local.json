@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan:*)",
+      "Bash(php -r \"echo 'session.auto_start=' . ini_get\\('session.auto_start'\\) . PHP_EOL; echo 'session.cookie_domain=' . ini_get\\('session.cookie_domain'\\) . PHP_EOL; echo 'session.cookie_samesite=' . ini_get\\('session.cookie_samesite'\\) . PHP_EOL; echo 'session.save_path=' . ini_get\\('session.save_path'\\) . PHP_EOL;\")",
+      "Bash(php -r \"echo 'cookie_httponly: ' . ini_get\\('session.cookie_httponly'\\) . PHP_EOL; echo 'cookie_secure: ' . ini_get\\('session.cookie_secure'\\) . PHP_EOL; echo 'use_strict_mode: ' . ini_get\\('session.use_strict_mode'\\) . PHP_EOL;\")",
+      "Bash(curl -si http://liga-padres-tenis.test/login | grep -i \"set-cookie\\\\|location\\\\|http/\")",
+      "Bash(curl -s -c /tmp/cookies.txt http://liga-padres-tenis.test/login | grep -o 'name=\"_token\" value=\"[^\"]*\"')",
+      "Bash(curl -si -b /tmp/cookies.txt -c /tmp/cookies.txt \\\\\n  -X POST http://liga-padres-tenis.test/login \\\\\n  -d \"_token=vOEF1XWOuINApUOFjW4IslakMFyANNPhwyhGbvmz&email=admin%40admin.com&password=admin123\" \\\\\n  | grep -i \"http/\\\\|location\\\\|set-cookie\")",
+      "Bash(cat /c/Windows/System32/drivers/etc/hosts | grep -v \"^#\" | grep -v \"^$\")",
+      "Bash(grep '\"livewire/livewire\"' /c/xampp/htdocs/reservas-canchas-tenis/composer.json && php /c/xampp/htdocs/reservas-canchas-tenis/artisan --version)",
+      "Bash(composer update:*)",
+      "Bash(php composer.phar update livewire/livewire 2>&1 | tail -10)",
+      "Bash(where composer:*)",
+      "Read(//c/xampp/php/**)",
+      "Read(//c/ProgramData/ComposerSetup/**)",
+      "Bash(php -r \"echo shell_exec\\('composer --version'\\);\")",
+      "Bash(cmd /c \"dir /AL C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\public\\\\storage 2>&1\")",
+      "Bash(cmd /c \"dir /s C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\public\\\\storage 2>&1\")",
+      "Bash(cmd /c \"rmdir C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\public\\\\storage 2>&1\")",
+      "Bash(cmd /c \"dir C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\public\\\\storage\\\\comprobantes 2>&1\")",
+      "Bash(powershell -Command \"Get-Item 'C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\public\\\\storage' | Select-Object FullName, LinkType, Target\")",
+      "Bash(powershell -Command \"Remove-Item 'C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\public\\\\storage' -Force -Recurse\" 2>&1 && echo \"eliminado\")",
+      "Bash(cmd /c \"mklink /J C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\public\\\\storage C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\storage\\\\app\\\\public 2>&1\")",
+      "Bash(powershell -Command \"New-Item -ItemType Junction -Path 'C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\public\\\\storage' -Target 'C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\storage\\\\app\\\\public'\" 2>&1)",
+      "Bash(ipconfig | grep -A 1 \"Wi-Fi\\\\|Ethernet\" | grep \"IPv4\")",
+      "Bash(ipconfig 2>&1 | grep -i \"ipv4\")",
+      "Bash(netsh advfirewall:*)",
+      "Bash(composer require:*)",
+      "Bash(php composer.phar require mercadopago/dx-php 2>&1 || /c/xampp/php/php.exe composer.phar require mercadopago/dx-php 2>&1)",
+      "Bash(where php:*)",
+      "Bash(ls /c/xampp/php/composer*)",
+      "Read(//c/Users/jmazz/AppData/Roaming/Composer/vendor/**)",
+      "Bash(curl -sS https://getcomposer.org/installer | /c/xampp/php/php.exe 2>&1 && /c/xampp/php/php.exe composer.phar --version 2>&1)",
+      "Bash(/c/xampp/php/php.exe composer.phar require mercadopago/dx-php 2>&1)"
+    ]
+  }
+}
