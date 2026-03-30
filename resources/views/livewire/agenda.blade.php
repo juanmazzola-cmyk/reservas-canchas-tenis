@@ -351,6 +351,7 @@
                     wire:model="busquedaJugador"
                     wire:keyup="buscarJugador"
                     @input="abierto = true"
+                    @blur="setTimeout(() => abierto = false, 200)"
                     placeholder="Buscar por nombre o apellido..."
                     class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"
                 />
@@ -358,7 +359,6 @@
                 <div x-show="abierto" class="border border-gray-200 rounded-lg mt-1.5 divide-y divide-gray-100 shadow-sm overflow-hidden">
                     @foreach($resultadosBusqueda as $r)
                     <button
-                        @mousedown="abierto = false"
                         wire:click="agregarJugador({{ $r['id'] }})"
                         class="w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 flex items-center justify-between transition-colors">
                         <span class="font-medium text-gray-800">{{ $r['nombre'] }} {{ $r['apellido'] }}</span>
