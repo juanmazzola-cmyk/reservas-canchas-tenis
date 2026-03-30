@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Models\Configuracion as ConfigModel;
+use App\Models\Reserva;
 use App\Models\Bloqueo;
 use Carbon\Carbon;
 
@@ -12,11 +13,17 @@ use Carbon\Carbon;
 class Configuracion extends Component
 {
     public string $club_name = '';
+    public string $club_address = '';
+    public string $club_lat = '';
+    public string $club_lng = '';
     public int $court_count = 4;
     public array $cancha_names = [];
     public array $horarios = [];
     public string $non_member_price = '7500';
     public string $payment_alias = '';
+    public string $payment_cbu = '';
+    public string $payment_cuenta = '';
+    public string $payment_cuit = '';
     public string $payment_link = '';
     public string $payment_instructions = '';
     public int $advance_booking_limit_hours = 96;
@@ -26,6 +33,7 @@ class Configuracion extends Component
     public string $notification_text = '';
     public string $mp_access_token = '';
     public string $mp_public_key = '';
+    public string $anthropic_credits_date = '';
 
     public string $nuevoSlot = '';
 
@@ -34,11 +42,17 @@ class Configuracion extends Component
         $config = ConfigModel::getConfig();
 
         $this->club_name                    = $config->club_name;
+        $this->club_address                 = $config->club_address ?? '';
+        $this->club_lat                     = $config->club_lat ? (string) $config->club_lat : '';
+        $this->club_lng                     = $config->club_lng ? (string) $config->club_lng : '';
         $this->court_count                  = $config->court_count;
         $this->cancha_names                 = $config->cancha_names ?? [];
         $this->horarios                     = $config->slots ?? [];
         $this->non_member_price             = (string) $config->non_member_price;
         $this->payment_alias                = $config->payment_alias ?? '';
+        $this->payment_cbu                  = $config->payment_cbu ?? '';
+        $this->payment_cuenta               = $config->payment_cuenta ?? '';
+        $this->payment_cuit                 = $config->payment_cuit ?? '';
         $this->payment_link                 = $config->payment_link ?? '';
         $this->payment_instructions         = $config->payment_instructions ?? '';
         $this->advance_booking_limit_hours  = $config->advance_booking_limit_hours;
@@ -48,6 +62,9 @@ class Configuracion extends Component
         $this->notification_text            = $config->notification_text ?? '';
         $this->mp_access_token              = $config->mp_access_token ?? '';
         $this->mp_public_key                = $config->mp_public_key ?? '';
+        $this->anthropic_credits_date       = $config->anthropic_credits_date
+            ? $config->anthropic_credits_date->format('Y-m-d')
+            : '';
     }
 
     private function getProximosDias(): array
@@ -150,11 +167,17 @@ class Configuracion extends Component
         $config = ConfigModel::getConfig();
         $config->update([
             'club_name'                    => $this->club_name,
+            'club_address'                 => $this->club_address ?: null,
+            'club_lat'                     => $this->club_lat !== '' ? (float) $this->club_lat : null,
+            'club_lng'                     => $this->club_lng !== '' ? (float) $this->club_lng : null,
             'court_count'                  => $this->court_count,
             'cancha_names'                 => $this->cancha_names,
             'slots'                        => $this->horarios,
             'non_member_price'             => (float) $this->non_member_price,
             'payment_alias'                => $this->payment_alias ?: null,
+            'payment_cbu'                  => $this->payment_cbu ?: null,
+            'payment_cuenta'               => $this->payment_cuenta ?: null,
+            'payment_cuit'                 => $this->payment_cuit ?: null,
             'payment_link'                 => $this->payment_link ?: null,
             'payment_instructions'         => $this->payment_instructions ?: null,
             'advance_booking_limit_hours'  => $this->advance_booking_limit_hours,
@@ -164,9 +187,33 @@ class Configuracion extends Component
             'notification_text'            => $this->notification_text ?: null,
             'mp_access_token'              => $this->mp_access_token ?: null,
             'mp_public_key'                => $this->mp_public_key ?: null,
+            'anthropic_credits_date'       => $this->anthropic_credits_date ?: null,
         ]);
 
         $this->dispatch('toast', message: 'Configuración guardada correctamente.', type: 'success');
+    }
+
+    private function getStatsVerificacionIA(): array
+    {
+        $total         = Reserva::whereNotNull('verificacion_ia')->count();
+        $confirmadas   = Reserva::whereNotNull('verificacion_ia')
+            ->whereRaw("JSON_EXTRACT(verificacion_ia, '$.valido') = true")
+            ->count();
+        $revision      = $total - $confirmadas;
+        $costoEstimado = round($total * 0.002, 3);
+
+        $diasRestantes  = null;
+        $vencimiento    = null;
+        $alertaVencimiento = false;
+
+        $config = ConfigModel::getConfig();
+        if ($config->anthropic_credits_date) {
+            $vencimiento    = $config->anthropic_credits_date->addYear();
+            $diasRestantes  = (int) now()->startOfDay()->diffInDays($vencimiento, false);
+            $alertaVencimiento = $diasRestantes <= 5;
+        }
+
+        return compact('total', 'confirmadas', 'revision', 'costoEstimado', 'diasRestantes', 'vencimiento', 'alertaVencimiento');
     }
 
     public function render()
@@ -178,6 +225,7 @@ class Configuracion extends Component
                 ->orderBy('apellido')
                 ->get(['id', 'nombre', 'apellido', 'telefono'])
                 ->toArray(),
+            'statsIA'             => $this->getStatsVerificacionIA(),
         ]);
     }
 }

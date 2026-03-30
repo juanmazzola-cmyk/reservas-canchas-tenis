@@ -15,6 +15,42 @@
                     @error('club_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                <div x-data="{
+                    obtenerGPS() {
+                        if (!navigator.geolocation) { alert('Tu dispositivo no soporta geolocalización.'); return; }
+                        navigator.geolocation.getCurrentPosition(
+                            pos => {
+                                $wire.set('club_lat', pos.coords.latitude.toFixed(7));
+                                $wire.set('club_lng', pos.coords.longitude.toFixed(7));
+                            },
+                            () => alert('No se pudo obtener la ubicación. Verificá los permisos.')
+                        );
+                    }
+                }">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Dirección del club</label>
+                    <input type="text" wire:model="club_address" placeholder="Ej: Av. Siempreviva 742, Buenos Aires"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"/>
+                    <p class="text-[10px] text-gray-400 mt-1">Texto de referencia (opcional si cargás coordenadas).</p>
+
+                    <div class="mt-2 flex items-end gap-2">
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-medium text-gray-500 mb-1">Latitud</label>
+                            <input type="text" wire:model="club_lat" placeholder="-34.6037"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"/>
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-medium text-gray-500 mb-1">Longitud</label>
+                            <input type="text" wire:model="club_lng" placeholder="-58.3816"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"/>
+                        </div>
+                        <button type="button" @click="obtenerGPS()"
+                            class="flex items-center gap-1.5 bg-gray-800 text-white text-xs font-medium px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors whitespace-nowrap">
+                            📍 Usar mi GPS
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1">Las coordenadas se usan para el botón de ubicación en la app. Tocá "Usar mi GPS" desde el club para mayor precisión.</p>
+                </div>
+
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Cantidad de canchas</label>
@@ -89,6 +125,22 @@
                     <label class="block text-xs font-medium text-gray-600 mb-1">Alias de pago</label>
                     <input type="text" wire:model="payment_alias" placeholder="Ej: liga.padres.tenis"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"/>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">CBU / CVU</label>
+                    <input type="text" wire:model="payment_cbu" placeholder="22 dígitos"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] font-mono"/>
+                    <p class="text-[10px] text-gray-400 mt-0.5">Se usa para verificar comprobantes donde no aparece el alias.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Número de cuenta corriente</label>
+                    <input type="text" wire:model="payment_cuenta" placeholder="Ej: 123-456789/0"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] font-mono"/>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">CUIT</label>
+                    <input type="text" wire:model="payment_cuit" placeholder="Ej: 20-12345678-9"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] font-mono"/>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Link de MercadoPago</label>
@@ -220,6 +272,67 @@
             <p class="text-xs text-gray-400 text-center py-2">No hay usuarios con teléfono registrado.</p>
             @endforelse
         </div>
+    </div>
+
+    {{-- Verificación IA --}}
+    <div class="bg-white rounded-2xl shadow-sm p-5">
+        <h3 class="font-semibold text-gray-800 mb-1 pb-2 border-b border-gray-100">Verificación IA de comprobantes</h3>
+        <p class="text-xs text-gray-400 mb-4">Estadísticas de comprobantes analizados automáticamente por Claude.</p>
+
+        {{-- Alerta de vencimiento --}}
+        @if($statsIA['alertaVencimiento'])
+        <div class="bg-red-50 border border-red-300 rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
+            <span class="text-lg leading-none">⚠️</span>
+            <div>
+                <p class="text-sm font-bold text-red-700">¡Los créditos de la API vencen en {{ $statsIA['diasRestantes'] }} día{{ $statsIA['diasRestantes'] !== 1 ? 's' : '' }}!</p>
+                <p class="text-xs text-red-600 mt-0.5">Recargá créditos en console.anthropic.com y actualizá la fecha abajo.</p>
+            </div>
+        </div>
+        @endif
+
+        {{-- Contadores --}}
+        <div class="grid grid-cols-3 gap-3 mb-4">
+            <div class="bg-blue-50 rounded-xl px-3 py-3 text-center">
+                <p class="text-2xl font-bold text-blue-700">{{ $statsIA['total'] }}</p>
+                <p class="text-[10px] text-blue-500 font-medium uppercase mt-0.5">Total verificados</p>
+            </div>
+            <div class="bg-green-50 rounded-xl px-3 py-3 text-center">
+                <p class="text-2xl font-bold text-green-700">{{ $statsIA['confirmadas'] }}</p>
+                <p class="text-[10px] text-green-500 font-medium uppercase mt-0.5">Confirmados auto</p>
+            </div>
+            <div class="bg-yellow-50 rounded-xl px-3 py-3 text-center">
+                <p class="text-2xl font-bold text-yellow-700">{{ $statsIA['revision'] }}</p>
+                <p class="text-[10px] text-yellow-500 font-medium uppercase mt-0.5">A revisión manual</p>
+            </div>
+        </div>
+
+        {{-- Costo estimado --}}
+        <div class="bg-gray-50 rounded-xl px-4 py-3 flex items-center justify-between mb-4">
+            <div>
+                <p class="text-xs font-semibold text-gray-600">Costo estimado acumulado</p>
+                <p class="text-[10px] text-gray-400 mt-0.5">~$0.002 USD por verificación</p>
+            </div>
+            <p class="text-lg font-bold text-gray-700">~${{ number_format($statsIA['costoEstimado'], 3) }} USD</p>
+        </div>
+
+        {{-- Fecha de carga de créditos --}}
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Fecha de carga de créditos</label>
+            <input type="date" wire:model="anthropic_credits_date"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"/>
+            @if($statsIA['vencimiento'])
+            <p class="text-[10px] mt-1 {{ $statsIA['alertaVencimiento'] ? 'text-red-500 font-semibold' : 'text-gray-400' }}">
+                Vence el {{ $statsIA['vencimiento']->locale('es')->isoFormat('D [de] MMMM [de] YYYY') }}
+                · {{ $statsIA['diasRestantes'] >= 0 ? $statsIA['diasRestantes'] . ' días restantes' : 'VENCIDO' }}
+            </p>
+            @else
+            <p class="text-[10px] text-gray-400 mt-1">Registrá la fecha en que cargaste los créditos para recibir alerta de vencimiento.</p>
+            @endif
+        </div>
+
+        @if($statsIA['total'] === 0)
+        <p class="text-xs text-gray-400 text-center mt-3">Aún no se verificó ningún comprobante.</p>
+        @endif
     </div>
 
     <button wire:click="guardar" wire:loading.attr="disabled"

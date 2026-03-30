@@ -26,4 +26,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/usuarios', \App\Livewire\Admin\Usuarios::class)->name('admin.usuarios');
     Route::get('/admin/configuracion', \App\Livewire\Admin\Configuracion::class)->name('admin.configuracion');
     Route::get('/admin/estadisticas', \App\Livewire\Admin\Estadisticas::class)->name('admin.estadisticas');
+    Route::get('/admin/prueba-comprobante', \App\Livewire\Admin\PruebaComprobante::class)->name('admin.prueba-comprobante');
 });

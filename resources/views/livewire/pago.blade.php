@@ -1,12 +1,97 @@
 <div class="space-y-4 pb-24">
 
+
     @if($enviado)
-    {{-- Confirmación --}}
-    <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center space-y-3">
+    {{-- Resultado verificación IA --}}
+    @if($verificacion && $verificacion['valido'])
+    <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center space-y-2">
         <div class="text-5xl">✅</div>
-        <h2 class="text-xl font-bold text-green-700">¡Comprobante enviado!</h2>
-        <p class="text-sm text-green-600">Tu reserva está pendiente de autorización por el club.</p>
+        <h2 class="text-xl font-bold text-green-700">¡Reserva confirmada!</h2>
+        <p class="text-sm text-green-600">El pago fue verificado automáticamente.</p>
     </div>
+    @elseif($verificacion && !$verificacion['error'])
+    <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 space-y-3">
+        <div class="text-center">
+            <div class="text-4xl mb-1">⚠️</div>
+            <h2 class="text-base font-bold text-yellow-800">Comprobante en revisión</h2>
+            <p class="text-xs text-yellow-700 mt-1">No pudimos confirmar el pago automáticamente. El club lo revisará.</p>
+        </div>
+        @if($waUrl)
+        <a href="{{ $waUrl }}" target="_blank"
+           class="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-3 rounded-xl font-bold text-sm">
+            <svg viewBox="0 0 24 24" class="w-5 h-5 fill-white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.117 1.528 5.847L0 24l6.335-1.508A11.933 11.933 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.003-1.366l-.36-.214-3.76.896.952-3.655-.235-.376A9.808 9.808 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+            Notificar al admin por WhatsApp
+        </a>
+        @endif
+        {{-- Detalle de verificación --}}
+        <div class="bg-white rounded-xl px-3 py-2 space-y-1.5 text-xs">
+            @php
+                function iconoCheck($val) {
+                    if ($val === true)  return ['✓', 'text-green-600'];
+                    if ($val === false) return ['✗', 'text-red-600'];
+                    return ['?', 'text-gray-400'];
+                }
+                [$fi, $fc] = iconoCheck($verificacion['fecha_ok'] ?? null);
+                [$hi, $hc] = iconoCheck($verificacion['hora_ok'] ?? null);
+                [$ii, $ic] = iconoCheck($verificacion['importe_ok'] ?? null);
+                [$ai, $ac] = iconoCheck($verificacion['alias_ok'] ?? null);
+            @endphp
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Fecha</span>
+                <span class="font-semibold {{ $fc }}">
+                    {{ $fi }}
+                    @if($verificacion['fecha_encontrada'] ?? null) <span class="font-normal text-gray-500">({{ $verificacion['fecha_encontrada'] }})</span> @endif
+                </span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Hora <span class="text-[10px] text-gray-400">(enviado dentro de los 30 min)</span></span>
+                <span class="font-semibold {{ $hc }}">
+                    @if(($verificacion['hora_ok'] ?? null) === null)
+                        <span class="text-gray-400 font-normal text-[10px]">No aparece en el comprobante</span>
+                    @else
+                        {{ $hi }}
+                        @if($verificacion['hora_encontrada'] ?? null) <span class="font-normal text-gray-500">({{ $verificacion['hora_encontrada'] }})</span> @endif
+                    @endif
+                </span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Importe</span>
+                <span class="font-semibold {{ $ic }}">
+                    {{ $ii }}
+                    @if($verificacion['importe_encontrado'] ?? null) <span class="font-normal text-gray-500">({{ $verificacion['importe_encontrado'] }})</span> @endif
+                </span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Alias</span>
+                <span class="font-semibold {{ $ac }}">
+                    @if(($verificacion['alias_ok'] ?? null) === null)
+                        <span class="text-gray-400 font-normal text-[10px]">No aparece en el comprobante</span>
+                    @else
+                        {{ $ai }}
+                        @if($verificacion['alias_encontrado'] ?? null) <span class="font-normal text-gray-500">({{ $verificacion['alias_encontrado'] }})</span> @endif
+                    @endif
+                </span>
+            </div>
+        </div>
+        @if(!empty($verificacion['detalle']))
+        <p class="text-[10px] text-yellow-700 text-center">{{ $verificacion['detalle'] }}</p>
+        @endif
+    </div>
+    @else
+    {{-- Error de verificación (API no disponible, etc.) --}}
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 text-center space-y-2">
+        <div class="text-5xl">📋</div>
+        <h2 class="text-base font-bold text-blue-800">Comprobante enviado</h2>
+        <p class="text-xs text-blue-700">El club revisará el pago y autorizará tu reserva.</p>
+    </div>
+    @if($waUrl)
+    <a href="{{ $waUrl }}" target="_blank"
+       class="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-3 rounded-xl font-bold text-sm">
+        <svg viewBox="0 0 24 24" class="w-5 h-5 fill-white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.117 1.528 5.847L0 24l6.335-1.508A11.933 11.933 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.003-1.366l-.36-.214-3.76.896.952-3.655-.235-.376A9.808 9.808 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+        Notificar al admin por WhatsApp
+    </a>
+    @endif
+    @endif
 
     <a href="{{ route('agenda') }}"
        class="block text-center bg-terracota text-white py-3 rounded-2xl font-bold text-sm">
@@ -30,8 +115,8 @@
             <div class="flex items-center justify-between py-1.5">
                 <span class="text-xs text-gray-800 font-medium">{{ $j['nombre'] }}</span>
                 <span class="text-[10px] px-2 py-0.5 rounded-full font-medium
-                    {{ $j['es_socio'] ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700' }}">
-                    {{ $j['es_socio'] ? 'Socio' : 'No socio' }}
+                    {{ $j['es_socio'] ? 'bg-green-100 text-green-700' : ($j['es_invitado'] ?? false ? 'bg-amber-100 text-amber-700' : 'bg-orange-100 text-orange-700') }}">
+                    {{ $j['es_socio'] ? 'Socio' : ($j['es_invitado'] ?? false ? 'Invitado' : 'No socio') }}
                 </span>
             </div>
             @endforeach
@@ -71,6 +156,14 @@
     </div>
     @endif
 
+    {{-- Instrucciones de pago --}}
+    @if($config->payment_instructions)
+    <div class="bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3">
+        <p class="text-xs font-semibold text-yellow-700 uppercase mb-1">📋 Instrucciones</p>
+        <p class="text-sm text-yellow-800 leading-relaxed">{{ $config->payment_instructions }}</p>
+    </div>
+    @endif
+
     {{-- Formas de pago --}}
     <div class="grid grid-cols-2 gap-3">
 
@@ -104,14 +197,6 @@
         @endif
 
     </div>
-
-    {{-- Instrucciones de pago --}}
-    @if($config->payment_instructions)
-    <div class="bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3">
-        <p class="text-xs font-semibold text-yellow-700 uppercase mb-1">📋 Instrucciones</p>
-        <p class="text-sm text-yellow-800 leading-relaxed">{{ $config->payment_instructions }}</p>
-    </div>
-    @endif
 
     {{-- Subir comprobante --}}
     <div class="bg-white rounded-2xl shadow-sm px-4 py-4">
@@ -150,10 +235,20 @@
     </button>
     @endif
 
+    {{-- Error de importe --}}
+    @if($errorImporte)
+    <div class="bg-red-50 border border-red-300 rounded-2xl px-4 py-4 flex items-start gap-3">
+        <span class="text-2xl leading-none">❌</span>
+        <div>
+            <p class="text-sm font-bold text-red-700">Importe incorrecto</p>
+            <p class="text-xs text-red-600 mt-1">{{ $errorImporte }}</p>
+            <p class="text-xs text-red-500 mt-2">Por favor realizá la transferencia por el monto correcto y subí el nuevo comprobante.</p>
+        </div>
+    </div>
+    @endif
+
     {{-- Botón enviar --}}
     <button
-        x-data="{ waUrl: @js($waUrl) }"
-        @click="if(waUrl) window.open(waUrl, '_blank')"
         wire:click="enviarComprobante"
         wire:loading.attr="disabled" wire:target="enviarComprobante"
         @if(!$comprobante) disabled @endif
@@ -162,7 +257,7 @@
         <span wire:loading.remove wire:target="enviarComprobante">
             @if(!$comprobante) Adjuntá el comprobante @else Enviar comprobante y confirmar reserva @endif
         </span>
-        <span wire:loading wire:target="enviarComprobante">Enviando...</span>
+        <span wire:loading wire:target="enviarComprobante">Verificando comprobante...</span>
     </button>
 
     @endif

@@ -7,7 +7,9 @@ use Livewire\WithFileUploads;
 use App\Models\Reserva;
 use App\Models\User;
 use App\Models\Configuracion;
+use App\Services\ComprobanteVerificador;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class Pago extends Component
 {
@@ -20,6 +22,8 @@ class Pago extends Component
     public $comprobante;
     public bool $enviado = false;
     public string $waUrl = '';
+    public ?array $verificacion = null;
+    public string $errorImporte = '';
 
     // datos del turno para mostrar en la vista
     public string $turno_dia = '';
@@ -59,10 +63,20 @@ class Pago extends Component
         $this->jugadores = User::whereIn('id', $r->jugadores_ids ?? [])
             ->get()
             ->map(fn($u) => [
-                'nombre'   => $u->nombre . ' ' . $u->apellido,
-                'es_socio' => $u->es_socio,
+                'nombre'      => $u->nombre . ' ' . $u->apellido,
+                'es_socio'    => $u->es_socio,
+                'es_invitado' => false,
             ])
             ->toArray();
+
+        // Agregar invitados como no-socios
+        foreach ($r->invitados ?? [] as $inv) {
+            $this->jugadores[] = [
+                'nombre'      => $inv['apellido'],
+                'es_socio'    => false,
+                'es_invitado' => true,
+            ];
+        }
 
         $this->cantNoSocios = collect($this->jugadores)->where('es_socio', false)->count();
         $this->totalAPagar  = $this->cantNoSocios * $precio;
@@ -71,7 +85,7 @@ class Pago extends Component
         if ($config->admin_whatsapp) {
             $tel    = preg_replace('/\D/', '', $config->admin_whatsapp);
             $lineas = collect($this->jugadores)
-                ->map(fn($j) => '• ' . $j['nombre'] . ' (' . ($j['es_socio'] ? 'Socio' : 'No socio') . ')')
+                ->map(fn($j) => '• ' . $j['nombre'] . ' (' . ($j['es_socio'] ? 'Socio' : ($j['es_invitado'] ? 'Invitado' : 'No socio')) . ')')
                 ->implode("\n");
             $msg = urlencode(
                 "🎾 *Nueva reserva pendiente de autorización*\n\n" .
@@ -105,18 +119,53 @@ class Pago extends Component
         $r = Reserva::find($this->reservaId);
         if (!$r) return;
 
-        $path = $this->comprobante->store('comprobantes', 'public');
+        $path      = $this->comprobante->store('comprobantes', 'public');
+        $rutaLocal = Storage::disk('public')->path($path);
+        $config    = Configuracion::getConfig();
+
+        $verificacion = app(ComprobanteVerificador::class)->verificar(
+            $rutaLocal,
+            $this->totalAPagar,
+            $config->payment_alias  ?? '',
+            $config->payment_cbu    ?? '',
+            $config->payment_cuenta ?? '',
+            $config->payment_cuit   ?? ''
+        );
+
+        // Si el importe no coincide → error al usuario, no se guarda nada
+        if (($verificacion['importe_ok'] ?? null) === false) {
+            Storage::disk('public')->delete($path);
+            $importeEsperado = '$' . number_format($this->totalAPagar, 0, ',', '.');
+            $encontrado = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
+            $this->errorImporte = "El importe del comprobante no coincide con el monto a pagar de {$importeEsperado}{$encontrado}. Revisá que hayas transferido el monto correcto.";
+            $this->comprobante = null;
+            return;
+        }
+
+        $this->errorImporte = '';
+
+        // Confirmación automática: fecha + hora + importe + alias/CBU encontrado y correcto
+        $valido = $verificacion['valido'] ?? false;
+
+        $estadoFinal = $valido ? 'AUTHORIZED' : 'PENDING_REVIEW';
 
         $r->update([
-            'comprobante' => $path,
-            'estado'      => 'PENDING_REVIEW',
+            'comprobante'     => $path,
+            'verificacion_ia' => $verificacion,
+            'estado'          => $estadoFinal,
+            'esta_pagado'     => $valido,
         ]);
 
+        $this->verificacion      = $verificacion;
         $this->turno_comprobante = $path;
-        $this->turno_estado      = 'PENDING_REVIEW';
+        $this->turno_estado      = $estadoFinal;
         $this->enviado           = true;
 
-        $this->dispatch('toast', message: 'Comprobante enviado. Aguardá la autorización del club.', type: 'success');
+        if ($valido) {
+            $this->dispatch('toast', message: '¡Pago verificado! Tu reserva fue confirmada.', type: 'success');
+        } else {
+            $this->dispatch('toast', message: 'Comprobante enviado. El club lo revisará manualmente.', type: 'info');
+        }
     }
 
     public function render()

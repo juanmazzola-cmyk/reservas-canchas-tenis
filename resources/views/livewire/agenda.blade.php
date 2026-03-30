@@ -91,11 +91,14 @@
                                 <div class="w-8 h-8 {{ $canchaBloq ? 'bg-gray-500' : 'bg-[#0057a8]' }} text-white rounded-full flex items-center justify-center font-bold text-sm">
                                     {{ $cancha['nombre'] }}
                                 </div>
+                                @if($canchaBloq && !empty($canchaBloq['razon']))
+                                    <span class="text-[9px] text-gray-500 leading-tight text-center">{{ $canchaBloq['razon'] }}</span>
+                                @endif
                                 @if(auth()->user()->rol === 'admin')
                                     @if($canchaBloq)
                                         <button wire:click="desbloquearCancha({{ $cancha['id'] }})" class="text-[10px] text-yellow-500">🔓</button>
                                     @else
-                                        <button wire:click="bloquearCancha({{ $cancha['id'] }})" class="text-[10px] text-gray-400 hover:text-red-500">🔒</button>
+                                        <button wire:click="abrirModalBloqueo('cancha', '', {{ $cancha['id'] }})" class="text-[10px] text-gray-400 hover:text-red-500">🔒</button>
                                     @endif
                                 @endif
                             </div>
@@ -145,7 +148,7 @@
                                     @if($horaBloq)
                                         <button wire:click="desbloquearHora('{{ $hora }}')" class="text-yellow-500 hover:text-yellow-600">🔓</button>
                                     @else
-                                        <button wire:click="bloquearHora('{{ $hora }}')" class="text-gray-300 hover:text-red-400 transition-colors">🔒</button>
+                                        <button wire:click="abrirModalBloqueo('hora', '{{ $hora }}')" class="text-gray-300 hover:text-red-400 transition-colors">🔒</button>
                                     @endif
                                 @endif
                             </div>
@@ -160,8 +163,11 @@
                                     <div class="rounded bg-gray-50 border border-gray-200 text-center py-2 text-gray-300 text-[11px]">—</div>
 
                                 @elseif($celda['tipo'] === 'bloqueada')
-                                    <div class="rounded bg-gray-800 text-center py-2 text-white text-[11px] flex flex-col items-center gap-0.5">
+                                    <div class="rounded bg-gray-800 text-center py-1.5 text-white text-[11px] flex flex-col items-center gap-0.5">
                                         <span>🔒</span>
+                                        @if(!empty($celda['razon']))
+                                            <span class="text-[9px] text-gray-300 leading-tight px-0.5 break-words w-full text-center">{{ $celda['razon'] }}</span>
+                                        @endif
                                         @if(auth()->user()->rol === 'admin')
                                             <button wire:click="desbloquear('{{ $hora }}', {{ $cancha['id'] }})"
                                                 class="text-yellow-400 text-[10px] underline">quitar</button>
@@ -175,26 +181,28 @@
                                         class="w-full rounded border text-left px-1.5 py-1 text-[10px] leading-snug transition
                                             {{ $celda['es_mia'] ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' : 'bg-gray-100 border-gray-200 hover:bg-gray-200' }}">
                                         @foreach($celda['apellidos'] as $ap)
-                                            <div class="truncate text-center {{ $celda['es_mia'] ? 'text-blue-800' : 'text-gray-600' }} font-medium">{{ $ap }}</div>
+                                            <div class="truncate text-center font-medium {{ str_ends_with($ap, ' *') ? 'text-orange-500' : ($celda['es_mia'] ? 'text-blue-800' : 'text-gray-600') }}">{{ $ap }}</div>
                                         @endforeach
                                         @if(!$celda['esta_pagado'])
-                                            <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">P. aut.</div>
+                                            <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">Falta aut.</div>
                                         @endif
                                     </button>
                                     @elseif(auth()->user()->rol === 'control')
                                     <div class="w-full rounded border bg-gray-100 border-gray-200 px-1.5 py-1 text-[10px] leading-snug">
                                         @foreach($celda['apellidos'] as $ap)
-                                            <div class="truncate text-center text-gray-600 font-medium">{{ $ap }}</div>
+                                            <div class="truncate text-center font-medium {{ str_ends_with($ap, ' *') ? 'text-orange-500' : 'text-gray-600' }}">{{ $ap }}</div>
                                         @endforeach
                                         @if(!$celda['esta_pagado'])
-                                            <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">P. aut.</div>
+                                            <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">Falta aut.</div>
                                         @endif
                                     </div>
                                     @else
                                     <div class="w-full rounded border bg-gray-100 border-gray-200 px-1.5 py-1 text-[10px] leading-snug">
-                                        <div class="text-red-300 font-medium text-center py-1">OCUPADO</div>
+                                        @foreach($celda['apellidos'] as $ap)
+                                            <div class="truncate text-center font-medium {{ str_ends_with($ap, ' *') ? 'text-orange-500' : 'text-gray-600' }}">{{ $ap }}</div>
+                                        @endforeach
                                         @if(!$celda['esta_pagado'])
-                                            <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">P. aut.</div>
+                                            <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">Falta aut.</div>
                                         @endif
                                     </div>
                                     @endif
@@ -227,7 +235,7 @@
                                             </button>
                                         @endif
                                         @if(auth()->user()->rol === 'admin')
-                                            <button wire:click="bloquearCelda('{{ $hora }}', {{ $cancha['id'] }})"
+                                            <button wire:click="abrirModalBloqueo('celda', '{{ $hora }}', {{ $cancha['id'] }})"
                                                 class="w-full text-[10px] text-gray-300 hover:text-red-400 transition-colors text-center">
                                                 🔒
                                             </button>
@@ -250,8 +258,11 @@
     @php
         $maxJugadores = $modalTipo === 'single' ? 2 : 4;
         $rivalesNecesarios = $maxJugadores - 1;
-        $rivalesAgregados = count($jugadoresSeleccionados) - 1;
+        $rivalesAgregados = count($jugadoresSeleccionados) - 1 + count($invitadoApellidos);
         $faltanRivales = $rivalesNecesarios - $rivalesAgregados;
+        $totalActual = count($jugadoresSeleccionados) + count($invitadoApellidos);
+        $hayInvitadoSinApellido = collect($invitadoApellidos)->contains(fn($a) => trim($a) === '');
+        $puedeConfirmar = $totalActual >= $maxJugadores && !$avisoConflicto && !$hayInvitadoSinApellido;
     @endphp
     <div class="fixed left-0 right-0 bottom-0 z-50 flex flex-col bg-white shadow-2xl" :style="'top:' + stickyTop + 'px'">
 
@@ -282,7 +293,7 @@
                         {{ $modalTipo === 'single'
                             ? 'border-[#0057a8] bg-[#0057a8] text-white'
                             : 'border-gray-200 bg-gray-50 text-gray-500' }}">
-                    🎾 Single
+                    🎾🎾 Single
                     <p class="text-[11px] font-normal mt-0.5 {{ $modalTipo === 'single' ? 'opacity-75' : 'text-gray-400' }}">vos + 1 rival</p>
                 </button>
                 <button wire:click="setTipo('dobles')"
@@ -290,7 +301,7 @@
                         {{ $modalTipo === 'dobles'
                             ? 'border-[#0057a8] bg-[#0057a8] text-white'
                             : 'border-gray-200 bg-gray-50 text-gray-500' }}">
-                    🎾🎾 Dobles
+                    🎾🎾🎾🎾 Dobles
                     <p class="text-[11px] font-normal mt-0.5 {{ $modalTipo === 'dobles' ? 'opacity-75' : 'text-gray-400' }}">vos + 3 rivales</p>
                 </button>
             </div>
@@ -328,23 +339,27 @@
                 </div>
             </div>
 
-            {{-- Buscador --}}
-            @if(count($jugadoresSeleccionados) < $maxJugadores)
+            {{-- Buscador (solo cuando quedan slots libres) --}}
+            @if($totalActual < $maxJugadores)
             <div>
                 <p class="text-xs font-semibold text-gray-500 uppercase mb-1.5">
-                    Agregar {{ $modalTipo === 'single' ? 'rival' : 'rival / compañero' }}
+                    Agregar {{ $modalTipo === 'single' ? 'rival registrado' : 'rival / compañero registrado' }}
                 </p>
+                <div x-data="{ abierto: false }">
                 <input
                     type="text"
-                    wire:model.live.debounce.300ms="busquedaJugador"
+                    wire:model="busquedaJugador"
                     wire:keyup="buscarJugador"
+                    @input="abierto = true"
                     placeholder="Buscar por nombre o apellido..."
                     class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"
                 />
                 @if(!empty($resultadosBusqueda))
-                <div class="border border-gray-200 rounded-lg mt-1.5 divide-y divide-gray-100 shadow-sm overflow-hidden">
+                <div x-show="abierto" class="border border-gray-200 rounded-lg mt-1.5 divide-y divide-gray-100 shadow-sm overflow-hidden">
                     @foreach($resultadosBusqueda as $r)
-                    <button wire:click="agregarJugador({{ $r['id'] }})"
+                    <button
+                        @mousedown="abierto = false"
+                        wire:click="agregarJugador({{ $r['id'] }})"
                         class="w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 flex items-center justify-between transition-colors">
                         <span class="font-medium text-gray-800">{{ $r['nombre'] }} {{ $r['apellido'] }}</span>
                         <span class="text-xs {{ $r['es_socio'] ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-orange-50' }} px-2 py-0.5 rounded-full">
@@ -354,6 +369,46 @@
                     @endforeach
                 </div>
                 @endif
+                </div>
+
+                {{-- Aviso + botón de invitado --}}
+                <div class="mt-3 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                    <p class="text-xs text-amber-800">
+                        <span class="font-semibold">¿El jugador no está registrado?</span>
+                        Podés agregarlo como invitado indicando solo su apellido.
+                    </p>
+                    <button wire:click="agregarInvitado"
+                        class="mt-2 w-full text-xs font-semibold text-amber-700 border border-amber-300 bg-white hover:bg-amber-50 rounded-lg py-2 transition-colors">
+                        + Agregar invitado
+                    </button>
+                </div>
+            </div>
+            @endif
+
+            {{-- Invitados con input de apellido --}}
+            @if(!empty($invitadoApellidos))
+            <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase mb-1.5">Invitados</p>
+                <div class="space-y-2">
+                    @foreach($invitadoApellidos as $slot => $apellido)
+                    <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        <div class="w-7 h-7 bg-amber-400 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            ?
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-[10px] text-amber-600 font-semibold mb-0.5">Invitado {{ $slot }}</p>
+                            <input
+                                type="text"
+                                wire:model.live.debounce.400ms="invitadoApellidos.{{ $slot }}"
+                                placeholder="Apellido..."
+                                maxlength="40"
+                                class="w-full border border-amber-300 bg-white rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            />
+                        </div>
+                        <button wire:click="quitarInvitado({{ $slot }})" class="text-red-400 text-lg leading-none pl-1">✕</button>
+                    </div>
+                    @endforeach
+                </div>
             </div>
             @endif
 
@@ -364,13 +419,15 @@
             <button
                 wire:click="confirmarReserva"
                 wire:loading.attr="disabled" wire:target="confirmarReserva"
-                @if(count($jugadoresSeleccionados) < $maxJugadores || $avisoConflicto) disabled @endif
+                @if(!$puedeConfirmar) disabled @endif
                 class="w-full bg-[#0057a8] text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
                 <span wire:loading.remove wire:target="confirmarReserva">
                     @if($avisoConflicto)
                         No se puede confirmar
-                    @elseif(count($jugadoresSeleccionados) < $maxJugadores)
+                    @elseif($totalActual < $maxJugadores)
                         Completá los jugadores
+                    @elseif($hayInvitadoSinApellido)
+                        Completá los apellidos de invitados
                     @else
                         CONFIRMAR RESERVA
                     @endif
@@ -385,6 +442,48 @@
     {{-- ═══════════════════════════════════════════════════
          MODAL: Detalle reserva
     ══════════════════════════════════════════════════════ --}}
+    {{-- ═══════════════════════════════════════════════════
+         MODAL: Etiqueta de bloqueo
+    ══════════════════════════════════════════════════════ --}}
+    @if($modalBloqueo)
+    <div class="fixed inset-0 bg-black/60 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm shadow-xl p-6">
+            <h3 class="font-bold text-base mb-1">Bloquear
+                @if($bloqueoTipo === 'celda') celda {{ $bloqueoHora }} — Cancha {{ $bloqueoCancha }}
+                @elseif($bloqueoTipo === 'hora') horario {{ $bloqueoHora }}
+                @else cancha {{ $bloqueoCancha }}
+                @endif
+            </h3>
+            <p class="text-xs text-gray-500 mb-3">Seleccioná el motivo del bloqueo.</p>
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                @foreach($motivos as $m)
+                <button
+                    wire:click="$set('bloqueoMotivoId', {{ $m['id'] }})"
+                    class="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition
+                        {{ $bloqueoMotivoId === $m['id']
+                            ? 'border-gray-800 bg-gray-800 text-white'
+                            : 'border-gray-200 text-gray-700 hover:border-gray-400' }}"
+                >
+                    <span class="text-lg">{{ $m['emoji'] }}</span>
+                    <span>{{ $m['descripcion'] }}</span>
+                </button>
+                @endforeach
+            </div>
+            <div class="flex gap-3">
+                <button wire:click="$set('modalBloqueo', false)"
+                    class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm">
+                    Cancelar
+                </button>
+                <button wire:click="confirmarBloqueo"
+                    @if(!$bloqueoMotivoId) disabled @endif
+                    class="flex-1 bg-gray-800 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed">
+                    🔒 Bloquear
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     @if($modalDetalle && $detalleReserva)
     @php
         $dr = $detalleReserva;
@@ -411,6 +510,18 @@
                         <span class="ml-auto text-xs {{ $jug->es_socio ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700' }} px-2 py-0.5 rounded-full">
                             {{ $jug->es_socio ? 'Socio' : 'No socio' }}
                         </span>
+                    </div>
+                    @endforeach
+                    @foreach($dr->invitados ?? [] as $inv)
+                    <div class="flex items-center gap-2 py-1.5 border-b border-gray-100">
+                        <div class="w-7 h-7 bg-amber-400 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                            ?
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium">{{ $inv['apellido'] }}</p>
+                            <p class="text-xs text-amber-500">Invitado</p>
+                        </div>
+                        <span class="ml-auto text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">No socio</span>
                     </div>
                     @endforeach
                 </div>

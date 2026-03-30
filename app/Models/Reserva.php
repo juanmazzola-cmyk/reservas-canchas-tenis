@@ -13,10 +13,13 @@ class Reserva extends Model
         'hora',
         'cancha_id',
         'jugadores_ids',
+        'invitados',
         'creador_id',
         'esta_pagado',
         'comprobante',
+        'verificacion_ia',
         'estado',
+        'suspension_motivo',
         'mp_preference_id',
         'mp_payment_id',
         'mp_status',
@@ -25,8 +28,10 @@ class Reserva extends Model
     protected function casts(): array
     {
         return [
-            'jugadores_ids' => 'array',
-            'esta_pagado' => 'boolean',
+            'jugadores_ids'  => 'array',
+            'invitados'      => 'array',
+            'esta_pagado'    => 'boolean',
+            'verificacion_ia' => 'array',
         ];
     }
 

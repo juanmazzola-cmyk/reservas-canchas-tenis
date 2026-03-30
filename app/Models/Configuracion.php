@@ -10,11 +10,17 @@ class Configuracion extends Model
 
     protected $fillable = [
         'club_name',
+        'club_address',
+        'club_lat',
+        'club_lng',
         'court_count',
         'cancha_names',
         'slots',
         'non_member_price',
         'payment_alias',
+        'payment_cbu',
+        'payment_cuenta',
+        'payment_cuit',
         'payment_link',
         'payment_instructions',
         'advance_booking_limit_hours',
@@ -24,15 +30,17 @@ class Configuracion extends Model
         'notification_text',
         'mp_access_token',
         'mp_public_key',
+        'anthropic_credits_date',
     ];
 
     protected function casts(): array
     {
         return [
-            'slots' => 'array',
-            'cancha_names' => 'array',
-            'announcement_enabled' => 'boolean',
-            'non_member_price' => 'decimal:2',
+            'slots'                  => 'array',
+            'cancha_names'           => 'array',
+            'announcement_enabled'   => 'boolean',
+            'non_member_price'       => 'decimal:2',
+            'anthropic_credits_date' => 'date',
         ];
     }
 

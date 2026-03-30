@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Reserva;
 use App\Models\Bloqueo;
 use App\Models\Configuracion;
+use App\Models\MotivoBloqueo;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -30,16 +31,31 @@ class Agenda extends Component
     public string $busquedaJugador = '';
     public array $resultadosBusqueda = [];
     public array $jugadoresSeleccionados = [];
+    public array $invitadoApellidos = []; // [1 => 'apellido', 2 => 'apellido', ...]
 
-// Modal detalle reserva
+    // Modal detalle reserva
     public bool $modalDetalle = false;
     public ?int $detalleReservaId = null;
+
+    // Modal bloqueo (con motivo)
+    public bool $modalBloqueo = false;
+    public string $bloqueoTipo = ''; // 'celda' | 'hora' | 'cancha'
+    public string $bloqueoHora = '';
+    public int $bloqueoCancha = 0;
+    public int $bloqueoMotivoId = 0;
+    public array $motivos = [];
 
     protected ?Configuracion $config = null;
 
     public function mount(): void
     {
+        // Limpiar reservas PENDING abandonadas (cualquier usuario que salió sin pagar ni cancelar)
+        Reserva::where('estado', 'PENDING')
+            ->whereNull('comprobante')
+            ->delete();
+
         $this->config = Configuracion::getConfig();
+        $this->motivos = MotivoBloqueo::all(['id', 'emoji', 'descripcion'])->toArray();
         $this->cargarDias();
         $this->cargarCanchas();
         $this->cargarHorarios();
@@ -186,10 +202,10 @@ class Agenda extends Component
         foreach ($this->reservas as $r) {
             if ($r['hora'] === $hora && $r['cancha_id'] == $cancha) {
                 $esMia = in_array($userId, $r['jugadores_ids'] ?? []);
-                $apellidos = [];
-                if ($rol === 'admin' || $rol === 'control' || $esMia) {
-                    $jugadores = User::whereIn('id', $r['jugadores_ids'] ?? [])->get();
-                    $apellidos = $jugadores->pluck('apellido')->toArray();
+                $jugadores = User::whereIn('id', $r['jugadores_ids'] ?? [])->get();
+                $apellidos = $jugadores->pluck('apellido')->toArray();
+                foreach ($r['invitados'] ?? [] as $inv) {
+                    $apellidos[] = ($inv['apellido'] ?? '') . ' *';
                 }
                 return [
                     'tipo'          => 'ocupada',
@@ -241,7 +257,6 @@ class Agenda extends Component
         $celda = $this->getCeldaInfo($hora, $cancha);
 
         if ($celda['tipo'] === 'ocupada') {
-            if (Auth::user()->rol === 'control') return;
             $this->detalleReservaId = $celda['reserva_id'];
             $this->modalDetalle = true;
             return;
@@ -258,6 +273,7 @@ class Agenda extends Component
         $this->modalDia = $this->diaSeleccionado;
         $this->modalTipo = 'single';
         $this->jugadoresSeleccionados = [];
+        $this->invitadoApellidos = [];
         $this->busquedaJugador = '';
         $this->resultadosBusqueda = [];
 
@@ -343,21 +359,58 @@ class Agenda extends Component
     public function setTipo(string $tipo): void
     {
         $this->modalTipo = $tipo;
-        // Si cambia a single y hay más de 2, quitar los extras (excepto el propio usuario)
         $max = $tipo === 'single' ? 2 : 4;
+
+        // Recortar jugadores registrados si exceden el máximo
         if (count($this->jugadoresSeleccionados) > $max) {
             $this->jugadoresSeleccionados = array_values(
                 array_slice($this->jugadoresSeleccionados, 0, $max)
             );
         }
+
+        // Recortar invitados si el total excede el máximo
+        $slotsLibres = $max - count($this->jugadoresSeleccionados);
+        if (count($this->invitadoApellidos) > $slotsLibres) {
+            $temp = [];
+            $i = 1;
+            foreach (array_slice($this->invitadoApellidos, 0, $slotsLibres) as $ap) {
+                $temp[$i++] = $ap;
+            }
+            $this->invitadoApellidos = $temp;
+        }
+
         $this->busquedaJugador = '';
         $this->resultadosBusqueda = [];
+    }
+
+    public function agregarInvitado(): void
+    {
+        $max = $this->modalTipo === 'single' ? 2 : 4;
+        $total = count($this->jugadoresSeleccionados) + count($this->invitadoApellidos);
+        if ($total >= $max) {
+            return;
+        }
+        $slot = count($this->invitadoApellidos) + 1;
+        $this->invitadoApellidos[$slot] = '';
+    }
+
+    public function quitarInvitado(int $slot): void
+    {
+        unset($this->invitadoApellidos[$slot]);
+        // Re-indexar desde 1
+        $temp = [];
+        $i = 1;
+        foreach ($this->invitadoApellidos as $ap) {
+            $temp[$i++] = $ap;
+        }
+        $this->invitadoApellidos = $temp;
     }
 
     public function agregarJugador(int $userId): void
     {
         $max = $this->modalTipo === 'single' ? 2 : 4;
-        if (count($this->jugadoresSeleccionados) >= $max) {
+        $total = count($this->jugadoresSeleccionados) + count($this->invitadoApellidos);
+        if ($total >= $max) {
             $this->dispatch('toast', message: $this->modalTipo === 'single' ? 'Single: máximo 1 rival.' : 'Dobles: máximo 3 rivales.', type: 'warning');
             return;
         }
@@ -398,6 +451,21 @@ class Agenda extends Component
         if (empty($this->jugadoresSeleccionados)) {
             $this->dispatch('toast', message: 'Agregá al menos un jugador.', type: 'error');
             return;
+        }
+
+        $max = $this->modalTipo === 'single' ? 2 : 4;
+        $total = count($this->jugadoresSeleccionados) + count($this->invitadoApellidos);
+        if ($total < $max) {
+            $this->dispatch('toast', message: 'Completá todos los jugadores.', type: 'error');
+            return;
+        }
+
+        // Validar que todos los invitados tengan apellido
+        foreach ($this->invitadoApellidos as $slot => $apellido) {
+            if (empty(trim($apellido))) {
+                $this->dispatch('toast', message: "Completá el apellido del invitado {$slot}.", type: 'error');
+                return;
+            }
         }
 
         $ids = array_column($this->jugadoresSeleccionados, 'id');
@@ -444,13 +512,22 @@ class Agenda extends Component
             }
         }
 
-        $todosSocios = collect($this->jugadoresSeleccionados)->every(fn($j) => $j['es_socio']);
+        // Los invitados nunca son socios
+        $hayInvitados = !empty($this->invitadoApellidos);
+        $todosSocios = !$hayInvitados && collect($this->jugadoresSeleccionados)->every(fn($j) => $j['es_socio']);
+
+        // Armar el array de invitados para guardar
+        $invitadosData = [];
+        foreach ($this->invitadoApellidos as $slot => $apellido) {
+            $invitadosData[] = ['slot' => 'invitado' . $slot, 'apellido' => ucwords(strtolower(trim($apellido)))];
+        }
 
         $reserva = Reserva::create([
             'dia'           => $this->modalDia,
             'hora'          => $this->modalHora,
             'cancha_id'     => $this->modalCancha,
             'jugadores_ids' => $ids,
+            'invitados'     => !empty($invitadosData) ? $invitadosData : null,
             'creador_id'    => Auth::id(),
             'esta_pagado'   => $todosSocios,
             'estado'        => $todosSocios ? 'AUTHORIZED' : 'PENDING',
@@ -467,25 +544,62 @@ class Agenda extends Component
         $this->redirect(route('pago', $reserva->id));
     }
 
-    public function bloquearCelda(string $hora, int $cancha): void
+    public function abrirModalBloqueo(string $tipo, string $hora = '', int $cancha = 0): void
+    {
+        if (Auth::user()->rol !== 'admin') return;
+        $this->bloqueoTipo     = $tipo;
+        $this->bloqueoHora     = $hora;
+        $this->bloqueoCancha   = $cancha;
+        $this->bloqueoMotivoId = 0;
+        $this->modalBloqueo    = true;
+    }
+
+    public function confirmarBloqueo(): void
     {
         if (Auth::user()->rol !== 'admin') return;
 
-        Bloqueo::firstOrCreate([
+        $motivo = collect($this->motivos)->firstWhere('id', $this->bloqueoMotivoId);
+        $razon  = $motivo ? ($motivo['emoji'] . ' ' . $motivo['descripcion']) : null;
+
+        match ($this->bloqueoTipo) {
+            'celda'  => $this->bloquearCelda($this->bloqueoHora, $this->bloqueoCancha, $razon),
+            'hora'   => $this->bloquearHora($this->bloqueoHora, $razon),
+            'cancha' => $this->bloquearCancha($this->bloqueoCancha, $razon),
+            default  => null,
+        };
+
+        $this->modalBloqueo = false;
+    }
+
+    public function bloquearCelda(string $hora, int $cancha, ?string $razon = null): void
+    {
+        if (Auth::user()->rol !== 'admin') return;
+
+        Bloqueo::where('dia', $this->diaSeleccionado)
+            ->where('hora', $hora)
+            ->where('cancha_id', $cancha)
+            ->delete();
+
+        Bloqueo::create([
             'dia'       => $this->diaSeleccionado,
             'hora'      => $hora,
             'cancha_id' => $cancha,
-        ], ['razon' => null]);
+            'razon'     => $razon,
+        ]);
+
+        Reserva::where('dia', $this->diaSeleccionado)
+            ->where('hora', $hora)
+            ->where('cancha_id', $cancha)
+            ->update(['estado' => 'SUSPENDIDA', 'suspension_motivo' => $razon]);
 
         $this->cargarReservasYBloqueos();
         $this->dispatch('toast', message: "Bloqueado {$hora} — Cancha {$cancha}.", type: 'success');
     }
 
-    public function bloquearCancha(int $cancha): void
+    public function bloquearCancha(int $cancha, ?string $razon = null): void
     {
         if (Auth::user()->rol !== 'admin') return;
 
-        // Quitar bloqueos previos de esa cancha en ese día
         Bloqueo::where('dia', $this->diaSeleccionado)
             ->where('cancha_id', $cancha)
             ->whereNull('hora')
@@ -495,8 +609,12 @@ class Agenda extends Component
             'dia'       => $this->diaSeleccionado,
             'hora'      => null,
             'cancha_id' => $cancha,
-            'razon'     => 'Cancha bloqueada',
+            'razon'     => $razon,
         ]);
+
+        Reserva::where('dia', $this->diaSeleccionado)
+            ->where('cancha_id', $cancha)
+            ->update(['estado' => 'SUSPENDIDA', 'suspension_motivo' => $razon]);
 
         $this->cargarReservasYBloqueos();
         $this->dispatch('toast', message: "Cancha {$cancha} bloqueada.", type: 'success');
@@ -515,6 +633,9 @@ class Agenda extends Component
             'razon'     => 'Día bloqueado completo',
         ]);
 
+        Reserva::where('dia', $this->diaSeleccionado)
+            ->update(['estado' => 'SUSPENDIDA', 'suspension_motivo' => 'Día bloqueado completo']);
+
         $this->cargarReservasYBloqueos();
         $this->dispatch('toast', message: 'Día completo bloqueado.', type: 'success');
     }
@@ -532,7 +653,7 @@ class Agenda extends Component
         $this->dispatch('toast', message: 'Día desbloqueado.', type: 'success');
     }
 
-    public function bloquearHora(string $hora): void
+    public function bloquearHora(string $hora, ?string $razon = null): void
     {
         if (Auth::user()->rol !== 'admin') return;
 
@@ -545,8 +666,12 @@ class Agenda extends Component
             'dia'       => $this->diaSeleccionado,
             'hora'      => $hora,
             'cancha_id' => null,
-            'razon'     => 'Horario bloqueado',
+            'razon'     => $razon,
         ]);
+
+        Reserva::where('dia', $this->diaSeleccionado)
+            ->where('hora', $hora)
+            ->update(['estado' => 'SUSPENDIDA', 'suspension_motivo' => $razon]);
 
         $this->cargarReservasYBloqueos();
         $this->dispatch('toast', message: "Horario {$hora} bloqueado.", type: 'success');
@@ -598,8 +723,10 @@ class Agenda extends Component
         if (Auth::user()->rol !== 'admin') return;
         Reserva::destroy($reservaId);
         $this->modalDetalle = false;
+        $this->detalleReservaId = null;
         $this->cargarReservasYBloqueos();
         $this->dispatch('toast', message: 'Reserva cancelada.', type: 'success');
+        $this->dispatch('reservaAutorizada');
     }
 
     public function marcarPagado(int $reservaId): void
@@ -612,6 +739,19 @@ class Agenda extends Component
         $this->modalDetalle = false;
         $this->cargarReservasYBloqueos();
         $this->dispatch('toast', message: 'Pago autorizado.', type: 'success');
+        $this->dispatch('reservaAutorizada');
+    }
+
+    public function cobrarYAutorizar(int $reservaId): void
+    {
+        if (!in_array(Auth::user()->rol, ['admin', 'control'])) return;
+        $reserva = Reserva::find($reservaId);
+        if ($reserva) {
+            $reserva->update(['esta_pagado' => true, 'estado' => 'AUTHORIZED']);
+        }
+        $this->modalDetalle = false;
+        $this->cargarReservasYBloqueos();
+        $this->dispatch('toast', message: 'Pago cobrado y reserva autorizada.', type: 'success');
         $this->dispatch('reservaAutorizada');
     }
 
