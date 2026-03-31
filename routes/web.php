@@ -4,6 +4,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MercadoPagoController;
 
+// PWA icons
+Route::get('/icons/{filename}', function ($filename) {
+    $path = public_path('icons/' . $filename);
+    if (!file_exists($path)) abort(404);
+    return response()->file($path);
+})->where('filename', '.*\.(png|ico|svg)$');
+
 Route::get('/login', \App\Livewire\Login::class)->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware('guest');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
