@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ \App\Models\Configuracion::first()?->club_name ?? config('app.name', 'Liga Padres Tenis') }}</title>
+    <title>{{ \App\Models\Configuracion::first()?->club_name ?? config('app.name', 'Liga Padres Tenis') }} TEST</title>
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0057a8">
