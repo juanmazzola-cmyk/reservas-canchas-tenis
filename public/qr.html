@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>QR Ateneo JAM</title>
+  <style>
+    body { font-family: sans-serif; background: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .card { background: white; border-radius: 16px; padding: 32px; text-align: center; box-shadow: 0 4px 20px #0002; max-width: 340px; }
+    .card img { width: 200px; height: 200px; margin: 16px auto; display: block; }
+    h2 { color: #0057a8; margin: 0 0 4px; }
+    p { color: #555; font-size: 14px; margin: 4px 0; }
+    .url { font-size: 13px; color: #0057a8; font-weight: bold; margin-top: 12px; }
+    button { margin-top: 20px; background: #0057a8; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 15px; cursor: pointer; }
+    button:hover { background: #003d7a; }
+    @media print { button { display: none; } body { background: white; } }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🎾 Ateneo JAM</h2>
+    <p>Escaneá para reservar tu cancha</p>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=0057a8&data=https://ateneo.proyectosia.com.ar" alt="QR Code" style="border-radius:8px;">
+    <p class="url">ateneo.proyectosia.com.ar</p>
+    <button onclick="window.print()">🖨 Imprimir / Guardar</button>
+  </div>
+</body>
+</html>

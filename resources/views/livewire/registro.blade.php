@@ -44,6 +44,7 @@
                         placeholder="Ej: 1123456789"
                         class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('telefono') border-red-400 @enderror"
                     />
+                    <p class="text-red-500 text-xs mt-1">Sin el 0 y sin el 15</p>
                     @error('telefono') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 

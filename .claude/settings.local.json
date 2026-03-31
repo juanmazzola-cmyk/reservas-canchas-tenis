@@ -32,7 +32,19 @@
       "Bash(ls /c/xampp/php/composer*)",
       "Read(//c/Users/jmazz/AppData/Roaming/Composer/vendor/**)",
       "Bash(curl -sS https://getcomposer.org/installer | /c/xampp/php/php.exe 2>&1 && /c/xampp/php/php.exe composer.phar --version 2>&1)",
-      "Bash(/c/xampp/php/php.exe composer.phar require mercadopago/dx-php 2>&1)"
+      "Bash(/c/xampp/php/php.exe composer.phar require mercadopago/dx-php 2>&1)",
+      "Bash(php -l app/Livewire/Agenda.php)",
+      "Bash(php -l app/Models/Reserva.php)",
+      "Bash(php -l app/Livewire/MisTurnos.php)",
+      "Bash(php -l app/Livewire/Pago.php)",
+      "Bash(php -l \"C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\app\\\\Livewire\\\\Agenda.php\")",
+      "Bash(php -l \"C:\\\\xampp\\\\htdocs\\\\reservas-canchas-tenis\\\\app\\\\Livewire\\\\MisTurnos.php\")",
+      "Bash(ipconfig)",
+      "Bash(findstr \"IPv4\")",
+      "Bash(findstr \":80 \")",
+      "Bash(find C:xampphtdocsreservas-canchas-tenispublic -type f \\\\\\(-iname *.svg -o -iname *.png -o -iname *.jpg -o -iname *.jpeg \\\\\\))",
+      "Bash(start:*)",
+      "Bash(\"C:/xampp/htdocs/reservas-canchas-tenis/public/logo-b64.txt\")"
     ]
   }
 }

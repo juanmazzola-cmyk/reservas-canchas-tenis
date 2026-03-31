@@ -332,7 +332,7 @@
                             </div>
                         </div>
                         @if($j['id'] !== auth()->id())
-                        <button wire:click="quitarJugador({{ $j['id'] }})" class="text-red-400 text-lg leading-none pl-2">✕</button>
+                        <button wire:click="quitarJugador({{ $j['id'] }})" class="text-red-400 text-xs font-semibold pl-2">Quitar</button>
                         @endif
                     </div>
                     @endforeach
@@ -405,7 +405,7 @@
                                 class="w-full border border-amber-300 bg-white rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
                             />
                         </div>
-                        <button wire:click="quitarInvitado({{ $slot }})" class="text-red-400 text-lg leading-none pl-1">✕</button>
+                        <button wire:click="quitarInvitado({{ $slot }})" class="text-red-400 text-xs font-semibold pl-1">Quitar</button>
                     </div>
                     @endforeach
                 </div>
