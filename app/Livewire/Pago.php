@@ -24,6 +24,7 @@ class Pago extends Component
     public string $waUrl = '';
     public ?array $verificacion = null;
     public string $errorImporte = '';
+    public bool $pagoDemas = false;
 
     // datos del turno para mostrar en la vista
     public string $turno_dia = '';
@@ -132,42 +133,29 @@ class Pago extends Component
             $config->payment_cuit   ?? ''
         );
 
-        // Si la API falló completamente → guardar como pendiente de revisión manual
-        if (($verificacion['error'] ?? null) !== null) {
-            $r->update([
-                'comprobante'     => $path,
-                'verificacion_ia' => $verificacion,
-                'estado'          => 'PENDING_REVIEW',
-                'esta_pagado'     => false,
-            ]);
-            $this->verificacion      = $verificacion;
-            $this->turno_comprobante = $path;
-            $this->turno_estado      = 'PENDING_REVIEW';
-            $this->enviado           = true;
-            $this->dispatch('toast', message: 'Comprobante enviado. El club lo revisará manualmente.', type: 'info');
-            return;
-        }
-
-        // No es un comprobante bancario válido
-        if (($verificacion['es_comprobante'] ?? null) !== true) {
+        // Si no es un comprobante bancario → error al usuario, no se guarda nada
+        if (($verificacion['es_comprobante'] ?? null) === false) {
             Storage::disk('public')->delete($path);
             $this->errorImporte = "El archivo adjunto no es un comprobante de transferencia bancaria válido. Por favor adjuntá el comprobante correcto.";
             $this->comprobante = null;
             return;
         }
 
-        // El importe no coincide o no se pudo leer
-        if (($verificacion['importe_ok'] ?? null) !== true) {
+        // Si el importe no coincide → error al usuario, no se guarda nada
+        if (($verificacion['importe_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
             $importeEsperado = '$' . number_format($this->totalAPagar, 0, ',', '.');
             $encontrado = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
             $this->errorImporte = "El importe del comprobante no coincide con el monto a pagar de {$importeEsperado}{$encontrado}. Revisá que hayas transferido el monto correcto.";
+            $importeTexto = $verificacion['importe_encontrado'] ?? '';
+            $importeNumerico = (float) preg_replace('/[^\d]/', '', $importeTexto);
+            $this->pagoDemas = $importeNumerico > 0 && $importeNumerico > $this->totalAPagar;
             $this->comprobante = null;
             return;
         }
 
-        // Fecha fuera de rango o no encontrada
-        if (($verificacion['fecha_ok'] ?? null) !== true) {
+        // Si la fecha o la hora del pago están fuera del rango permitido → rechazar, no tiene sentido revisarlo
+        if (($verificacion['fecha_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
             $fechaEncontrada = $verificacion['fecha_encontrada'] ? ' (fecha encontrada: ' . $verificacion['fecha_encontrada'] . ')' : '';
             $this->errorImporte = "La fecha del comprobante no corresponde al día de la reserva{$fechaEncontrada}. El pago debe realizarse el mismo día.";
@@ -175,19 +163,10 @@ class Pago extends Component
             return;
         }
 
-        // Hora fuera de rango
         if (($verificacion['hora_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
             $horaEncontrada = $verificacion['hora_encontrada'] ? ' (hora encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
             $this->errorImporte = "El horario del comprobante está fuera del rango permitido{$horaEncontrada}. El pago debe realizarse al momento de la reserva o hasta 30 minutos antes.";
-            $this->comprobante = null;
-            return;
-        }
-
-        // Alias/CVU no encontrado o no coincide
-        if (($verificacion['alias_ok'] ?? null) !== true) {
-            Storage::disk('public')->delete($path);
-            $this->errorImporte = "No se encontró el alias o CBU/CVU del club en el comprobante. Verificá que hayas transferido a la cuenta correcta.";
             $this->comprobante = null;
             return;
         }
