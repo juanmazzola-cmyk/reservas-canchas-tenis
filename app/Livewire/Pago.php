@@ -150,6 +150,23 @@ class Pago extends Component
             return;
         }
 
+        // Si la fecha o la hora del pago están fuera del rango permitido → rechazar, no tiene sentido revisarlo
+        if (($verificacion['fecha_ok'] ?? null) === false) {
+            Storage::disk('public')->delete($path);
+            $fechaEncontrada = $verificacion['fecha_encontrada'] ? ' (fecha encontrada: ' . $verificacion['fecha_encontrada'] . ')' : '';
+            $this->errorImporte = "La fecha del comprobante no corresponde al día de la reserva{$fechaEncontrada}. El pago debe realizarse el mismo día.";
+            $this->comprobante = null;
+            return;
+        }
+
+        if (($verificacion['hora_ok'] ?? null) === false) {
+            Storage::disk('public')->delete($path);
+            $horaEncontrada = $verificacion['hora_encontrada'] ? ' (hora encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
+            $this->errorImporte = "El horario del comprobante está fuera del rango permitido{$horaEncontrada}. El pago debe realizarse al momento de la reserva o hasta 30 minutos antes.";
+            $this->comprobante = null;
+            return;
+        }
+
         $this->errorImporte = '';
 
         // Confirmación automática: fecha + hora + importe + alias/CBU encontrado y correcto
