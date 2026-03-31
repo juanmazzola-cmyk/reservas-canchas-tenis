@@ -132,6 +132,14 @@ class Pago extends Component
             $config->payment_cuit   ?? ''
         );
 
+        // Si no es un comprobante bancario → error al usuario, no se guarda nada
+        if (($verificacion['es_comprobante'] ?? null) === false) {
+            Storage::disk('public')->delete($path);
+            $this->errorImporte = "El archivo adjunto no es un comprobante de transferencia bancaria válido. Por favor adjuntá el comprobante correcto.";
+            $this->comprobante = null;
+            return;
+        }
+
         // Si el importe no coincide → error al usuario, no se guarda nada
         if (($verificacion['importe_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);

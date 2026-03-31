@@ -53,18 +53,28 @@ class ComprobanteVerificador
         $lineaIdentificadores = implode(' | ', $identificadores) ?: 'No configurado';
 
         $prompt = <<<PROMPT
-Analizá este comprobante de transferencia bancaria argentina.
+Analizá la imagen adjunta.
+
+PRIMERO: determiná si es un comprobante oficial de transferencia bancaria argentina. Para ser válido DEBE contener todos estos elementos:
+- Número de operación o CVU/CBU o código de transacción bancaria
+- Importe transferido en pesos
+- Fecha y/o hora de la operación
+- Indicación clara de que es una transferencia completada (palabras como "transferencia realizada", "acreditado", "enviaste", etc.)
+
+NO es un comprobante bancario si es: una conversación de chat, un mensaje de texto, una captura de pantalla de una app que no sea bancaria, un documento de texto, una factura comercial, o cualquier otra cosa que no sea un comprobante oficial de transferencia emitido por una entidad bancaria o billetera virtual (Mercado Pago, Brubank, Ualá, BBVA, Santander, Galicia, Naranja X, Personal Pay, etc.).
+
+Si NO es un comprobante bancario válido, devolvé es_comprobante: false y no analices nada más.
+
+Si SÍ es un comprobante bancario válido, verificá:
 
 Datos esperados del pago:
 - Importe a pagar: {$importeFormateado}
 - Identificadores de la cuenta destino (buscá CUALQUIERA de estos): {$lineaIdentificadores}
-- Ventana de tiempo válida: entre {$fechaHoraDesde} y {$fechaHoraHasta} (la transferencia debe haberse hecho dentro de los 30 minutos anteriores al envío del comprobante)
+- Ventana de tiempo válida: entre {$fechaHoraDesde} y {$fechaHoraHasta}
 
-Instrucciones:
-1. Determiná si la imagen es un comprobante de transferencia/pago bancario.
-2. Buscá la fecha Y hora del comprobante. Verificá si cae dentro de la ventana válida ({$fechaHoraDesde} a {$fechaHoraHasta}). La idea es que la transferencia fue hecha como máximo 30 minutos antes de que el usuario envíe el comprobante. Tené en cuenta que si la ventana cruza la medianoche, la fecha puede ser {$fechaAyer} o {$fechaHoy}. Si el comprobante no muestra hora, verificá solo que la fecha sea {$fechaHoy} o {$fechaAyer}.
-3. Buscá el importe transferido y verificá si coincide con {$importeFormateado} (puede estar escrito con o sin puntos/comas).
-4. Buscá en el comprobante CUALQUIERA de estos identificadores de cuenta destino: alias, CBU/CVU o número de cuenta corriente. Si encontrás al menos uno y coincide, devolvé alias_ok como true. Si no aparece ninguno, devolvé alias_ok como null (no lo consideres un error). Si aparece alguno pero no coincide, devolvé alias_ok como false.
+1. Buscá la fecha Y hora del comprobante. Verificá si cae dentro de la ventana válida ({$fechaHoraDesde} a {$fechaHoraHasta}). Tené en cuenta que si la ventana cruza la medianoche, la fecha puede ser {$fechaAyer} o {$fechaHoy}. Si el comprobante no muestra hora, verificá solo que la fecha sea {$fechaHoy} o {$fechaAyer}.
+2. Buscá el importe transferido y verificá si coincide con {$importeFormateado} (puede estar escrito con o sin puntos/comas).
+3. Buscá en el comprobante CUALQUIERA de estos identificadores de cuenta destino: alias, CBU/CVU o número de cuenta corriente. Si encontrás al menos uno y coincide, devolvé alias_ok como true. Si no aparece ninguno, devolvé alias_ok como null. Si aparece alguno pero no coincide, devolvé alias_ok como false.
 
 Respondé ÚNICAMENTE con un objeto JSON válido, sin markdown, sin texto extra:
 {"es_comprobante":true/false,"fecha_ok":true/false/null,"hora_ok":true/false/null,"importe_ok":true/false/null,"alias_ok":true/false/null,"fecha_encontrada":"texto o null","hora_encontrada":"texto o null","importe_encontrado":"texto o null","alias_encontrado":"texto encontrado o null","detalle":"breve explicación de 1 línea"}
