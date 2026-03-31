@@ -63,6 +63,8 @@ PRIMERO: determiná si es un comprobante oficial de transferencia bancaria argen
 
 NO es un comprobante bancario si es: una conversación de chat, un mensaje de texto, una captura de pantalla de una app que no sea bancaria, un documento de texto, una factura comercial, o cualquier otra cosa que no sea un comprobante oficial de transferencia emitido por una entidad bancaria o billetera virtual (Mercado Pago, Brubank, Ualá, BBVA, Santander, Galicia, Naranja X, Personal Pay, etc.).
 
+IMPORTANTE: si el comprobante muestra el estado como "PENDIENTE", "EN PROCESO", "EN REVISIÓN" o cualquier indicación de que la transferencia NO fue completada, devolvé es_comprobante: false. Solo es válido si la transferencia está COMPLETADA/ACREDITADA/REALIZADA.
+
 Si NO es un comprobante bancario válido, devolvé es_comprobante: false y no analices nada más.
 
 Si SÍ es un comprobante bancario válido, verificá:
