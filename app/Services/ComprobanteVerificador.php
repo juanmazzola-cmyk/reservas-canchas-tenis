@@ -72,9 +72,11 @@ Datos esperados del pago:
 - Identificadores de la cuenta destino (buscá CUALQUIERA de estos): {$lineaIdentificadores}
 - Ventana de tiempo válida: entre {$fechaHoraDesde} y {$fechaHoraHasta}
 
-1. Buscá la fecha Y hora del comprobante. Verificá si cae dentro de la ventana válida ({$fechaHoraDesde} a {$fechaHoraHasta}). Tené en cuenta que si la ventana cruza la medianoche, la fecha puede ser {$fechaAyer} o {$fechaHoy}. Si el comprobante no muestra hora, verificá solo que la fecha sea {$fechaHoy} o {$fechaAyer}.
-2. Buscá el importe transferido y verificá si coincide con {$importeFormateado} (puede estar escrito con o sin puntos/comas).
-3. Buscá en el comprobante CUALQUIERA de estos identificadores de cuenta destino: alias, CBU/CVU o número de cuenta corriente. Si encontrás al menos uno y coincide, devolvé alias_ok como true. Si no aparece ninguno, devolvé alias_ok como null. Si aparece alguno pero no coincide, devolvé alias_ok como false.
+REGLA IMPORTANTE para todos los campos: usá null SOLO si el dato no aparece o no es legible en el comprobante. Usá false si el dato SÍ aparece y es legible pero NO coincide con el valor esperado. Usá true si el dato aparece y coincide.
+
+1. Buscá la fecha Y hora del comprobante. Verificá si cae dentro de la ventana válida ({$fechaHoraDesde} a {$fechaHoraHasta}). Tené en cuenta que si la ventana cruza la medianoche, la fecha puede ser {$fechaAyer} o {$fechaHoy}. Si el comprobante no muestra hora, verificá solo que la fecha sea {$fechaHoy} o {$fechaAyer}. Si la fecha es legible pero no corresponde → fecha_ok: false. Si no es legible → fecha_ok: null.
+2. Buscá el importe transferido. Si es legible y coincide con {$importeFormateado} → importe_ok: true. Si es legible pero es diferente (mayor o menor) → importe_ok: false. Si no es legible → importe_ok: null.
+3. Buscá en el comprobante CUALQUIERA de estos identificadores de cuenta destino: alias, CBU/CVU o número de cuenta corriente. Si encontrás al menos uno y coincide → alias_ok: true. Si encontrás alguno pero no coincide → alias_ok: false. Si no aparece ninguno → alias_ok: null.
 
 Respondé ÚNICAMENTE con un objeto JSON válido, sin markdown, sin texto extra:
 {"es_comprobante":true/false,"fecha_ok":true/false/null,"hora_ok":true/false/null,"importe_ok":true/false/null,"alias_ok":true/false/null,"fecha_encontrada":"texto o null","hora_encontrada":"texto o null","importe_encontrado":"texto o null","alias_encontrado":"texto encontrado o null","detalle":"breve explicación de 1 línea"}

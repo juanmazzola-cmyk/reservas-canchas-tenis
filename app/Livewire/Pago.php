@@ -141,7 +141,20 @@ class Pago extends Component
             return;
         }
 
-        // Si la fecha no corresponde al día de la reserva → rechazar
+        // 1. Importe diferente al esperado → rechazar
+        if (($verificacion['importe_ok'] ?? null) === false) {
+            Storage::disk('public')->delete($path);
+            $importeEsperado = '$' . number_format($this->totalAPagar, 0, ',', '.');
+            $encontrado = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
+            $this->errorImporte = "El importe del comprobante no coincide con el monto a pagar de {$importeEsperado}{$encontrado}. Revisá que hayas transferido el monto correcto.";
+            $importeTexto = $verificacion['importe_encontrado'] ?? '';
+            $importeNumerico = (float) preg_replace('/[^\d]/', '', $importeTexto);
+            $this->pagoDemas = $importeNumerico > 0 && $importeNumerico > $this->totalAPagar;
+            $this->comprobante = null;
+            return;
+        }
+
+        // 2. Fecha incorrecta (fuera del día de la reserva) → rechazar
         if (($verificacion['fecha_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
             $fechaEncontrada = $verificacion['fecha_encontrada'] ? ' (fecha encontrada: ' . $verificacion['fecha_encontrada'] . ')' : '';
@@ -150,7 +163,7 @@ class Pago extends Component
             return;
         }
 
-        // Si la hora está fuera del rango (30 min antes hasta el momento del envío) → rechazar
+        // 3. Hora fuera del rango permitido (hasta 30 min antes) → rechazar
         if (($verificacion['hora_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
             $horaEncontrada = $verificacion['hora_encontrada'] ? ' (hora encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
@@ -159,15 +172,11 @@ class Pago extends Component
             return;
         }
 
-        // Si el importe no coincide o no se pudo leer → rechazar
-        if (($verificacion['importe_ok'] ?? null) !== true) {
+        // 4. Alias/CVU encontrado pero no coincide → rechazar (si no se lee, pasa al admin)
+        if (($verificacion['alias_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
-            $importeEsperado = '$' . number_format($this->totalAPagar, 0, ',', '.');
-            $encontrado = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
-            $this->errorImporte = "El importe del comprobante no coincide con el monto a pagar de {$importeEsperado}{$encontrado}. Revisá que hayas transferido el monto correcto.";
-            $importeTexto = $verificacion['importe_encontrado'] ?? '';
-            $importeNumerico = (float) preg_replace('/[^\d]/', '', $importeTexto);
-            $this->pagoDemas = $importeNumerico > 0 && $importeNumerico > $this->totalAPagar;
+            $aliasEncontrado = $verificacion['alias_encontrado'] ? ' (encontrado: ' . $verificacion['alias_encontrado'] . ')' : '';
+            $this->errorImporte = "El alias o CBU/CVU del comprobante no coincide con la cuenta del club{$aliasEncontrado}. Verificá que hayas transferido a la cuenta correcta.";
             $this->comprobante = null;
             return;
         }
