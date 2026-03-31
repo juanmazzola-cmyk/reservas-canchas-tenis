@@ -20,6 +20,7 @@ class Agenda extends Component
     public array $reservas = [];
     public array $bloqueos = [];
     public array $horasConflicto = []; // hora => 'mismo_horario' | 'consecutivo'
+    public array $usuariosPorId = []; // pre-cargados para evitar N+1 en getCeldaInfo
 
     // Modal reserva
     public bool $modalReserva = false;
@@ -132,6 +133,20 @@ class Agenda extends Component
             ->get()
             ->toArray();
 
+        // Pre-cargar todos los usuarios de las reservas en un solo query
+        $todosIds = collect($this->reservas)
+            ->flatMap(fn($r) => $r['jugadores_ids'] ?? [])
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $this->usuariosPorId = !empty($todosIds)
+            ? User::whereIn('id', $todosIds)
+                ->get(['id', 'nombre', 'apellido', 'telefono', 'es_socio'])
+                ->keyBy('id')
+                ->toArray()
+            : [];
+
         $this->calcularHorasConflicto();
     }
 
@@ -202,8 +217,12 @@ class Agenda extends Component
         foreach ($this->reservas as $r) {
             if ($r['hora'] === $hora && $r['cancha_id'] == $cancha) {
                 $esMia = in_array($userId, $r['jugadores_ids'] ?? []);
-                $jugadores = User::whereIn('id', $r['jugadores_ids'] ?? [])->get();
-                $apellidos = $jugadores->pluck('apellido')->toArray();
+                $apellidos = [];
+                foreach ($r['jugadores_ids'] ?? [] as $jId) {
+                    if (isset($this->usuariosPorId[$jId])) {
+                        $apellidos[] = $this->usuariosPorId[$jId]['apellido'];
+                    }
+                }
                 foreach ($r['invitados'] ?? [] as $inv) {
                     $apellidos[] = ($inv['apellido'] ?? '') . ' *';
                 }
@@ -241,8 +260,8 @@ class Agenda extends Component
         if (!$diaInfo) return false;
 
         $horaTarget = $hora ?: $this->modalHora;
-        $config = Configuracion::getConfig();
-        $limitHoras = $config ? (int) $config->advance_booking_limit_hours : 96;
+        $this->config ??= Configuracion::getConfig();
+        $limitHoras = $this->config ? (int) $this->config->advance_booking_limit_hours : 96;
         $fechaHora = Carbon::parse($diaInfo['fecha'] . ' ' . $horaTarget);
         $horasAnticipacion = now()->diffInHours($fechaHora, false);
 
