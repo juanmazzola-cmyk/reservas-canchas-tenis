@@ -133,10 +133,10 @@ class Pago extends Component
             $config->payment_cuit   ?? ''
         );
 
-        // Si no es un comprobante bancario → error al usuario, no se guarda nada
-        if (($verificacion['es_comprobante'] ?? null) === false) {
+        // Si no se puede confirmar que es un comprobante bancario completado → rechazar
+        if (($verificacion['es_comprobante'] ?? null) !== true) {
             Storage::disk('public')->delete($path);
-            $this->errorImporte = "El archivo adjunto no es un comprobante de transferencia bancaria válido. Por favor adjuntá el comprobante correcto.";
+            $this->errorImporte = "El archivo adjunto no es un comprobante de transferencia bancaria válido o la transferencia no está completada. Por favor adjuntá el comprobante correcto.";
             $this->comprobante = null;
             return;
         }
@@ -154,8 +154,8 @@ class Pago extends Component
             return;
         }
 
-        // 2. Fecha incorrecta (fuera del día de la reserva) → rechazar
-        if (($verificacion['fecha_ok'] ?? null) === false) {
+        // 2. Fecha no confirmada como correcta → rechazar
+        if (($verificacion['fecha_ok'] ?? null) !== true) {
             Storage::disk('public')->delete($path);
             $fechaEncontrada = $verificacion['fecha_encontrada'] ? ' (fecha encontrada: ' . $verificacion['fecha_encontrada'] . ')' : '';
             $this->errorImporte = "La fecha del comprobante no corresponde al día de la reserva{$fechaEncontrada}. El pago debe realizarse el mismo día.";
