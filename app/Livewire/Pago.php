@@ -142,7 +142,7 @@ class Pago extends Component
         }
 
         // Si el importe no coincide → error al usuario, no se guarda nada
-        if (($verificacion['importe_ok'] ?? null) === false) {
+        if (($verificacion['importe_ok'] ?? null) !== true) {
             Storage::disk('public')->delete($path);
             $importeEsperado = '$' . number_format($this->totalAPagar, 0, ',', '.');
             $encontrado = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
