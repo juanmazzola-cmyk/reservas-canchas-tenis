@@ -73,7 +73,7 @@ Datos esperados del pago:
 - Ventana de tiempo válida: entre {$fechaHoraDesde} y {$fechaHoraHasta}
 
 1. Buscá la fecha Y hora del comprobante. Verificá si cae dentro de la ventana válida ({$fechaHoraDesde} a {$fechaHoraHasta}). Tené en cuenta que si la ventana cruza la medianoche, la fecha puede ser {$fechaAyer} o {$fechaHoy}. Si el comprobante no muestra hora, verificá solo que la fecha sea {$fechaHoy} o {$fechaAyer}.
-2. Buscá el importe transferido y verificá si coincide con {$importeFormateado} (puede estar escrito con o sin puntos/comas).
+2. Buscá el importe transferido y verificá si coincide EXACTAMENTE con {$importeFormateado} (puede estar escrito con o sin puntos/comas). Si el importe es mayor O menor que {$importeFormateado}, devolvé importe_ok: false.
 3. Buscá en el comprobante CUALQUIERA de estos identificadores de cuenta destino: alias, CBU/CVU o número de cuenta corriente. Si encontrás al menos uno y coincide, devolvé alias_ok como true. Si no aparece ninguno, devolvé alias_ok como null. Si aparece alguno pero no coincide, devolvé alias_ok como false.
 
 Respondé ÚNICAMENTE con un objeto JSON válido, sin markdown, sin texto extra:
