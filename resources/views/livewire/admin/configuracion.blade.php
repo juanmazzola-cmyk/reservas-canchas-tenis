@@ -123,7 +123,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Alias de pago</label>
-                    <input type="text" wire:model="payment_alias" placeholder="Ej: liga.padres.tenis"
+                    <input type="text" wire:model="payment_alias" placeholder="Ej: ateneo.jam.tenis"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"/>
                 </div>
                 <div>

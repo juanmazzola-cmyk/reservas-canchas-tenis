@@ -144,7 +144,7 @@
             <p class="text-xs font-semibold text-gray-500 uppercase">Identificadores de cuenta (editables para prueba)</p>
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Alias</label>
-                <input type="text" wire:model="alias" placeholder="liga.padres.tenis"
+                <input type="text" wire:model="alias" placeholder="ateneo.jam.tenis"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"/>
             </div>
             <div>
