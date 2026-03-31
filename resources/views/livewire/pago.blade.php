@@ -243,6 +243,9 @@
             <p class="text-sm font-bold text-red-700">Importe incorrecto</p>
             <p class="text-xs text-red-600 mt-1">{{ $errorImporte }}</p>
             <p class="text-xs text-red-500 mt-2">Por favor realizá la transferencia por el monto correcto y subí el nuevo comprobante.</p>
+            @if($pagoDemas)
+            <p class="text-xs text-red-500 mt-1">Cualquier inconveniente contactá al administrador.</p>
+            @endif
         </div>
     </div>
     @endif

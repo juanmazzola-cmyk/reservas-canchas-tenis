@@ -24,6 +24,7 @@ class Pago extends Component
     public string $waUrl = '';
     public ?array $verificacion = null;
     public string $errorImporte = '';
+    public bool $pagoDemas = false;
 
     // datos del turno para mostrar en la vista
     public string $turno_dia = '';
@@ -146,6 +147,10 @@ class Pago extends Component
             $importeEsperado = '$' . number_format($this->totalAPagar, 0, ',', '.');
             $encontrado = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
             $this->errorImporte = "El importe del comprobante no coincide con el monto a pagar de {$importeEsperado}{$encontrado}. Revisá que hayas transferido el monto correcto.";
+            // Detectar si pagó de más
+            $importeTexto = $verificacion['importe_encontrado'] ?? '';
+            $importeNumerico = (float) preg_replace('/[^\d]/', '', $importeTexto);
+            $this->pagoDemas = $importeNumerico > 0 && $importeNumerico > $this->totalAPagar;
             $this->comprobante = null;
             return;
         }
