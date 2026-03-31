@@ -1,8 +1,11 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /liga-padres-tenis/
 
-    # Si no pide algo dentro de /public/, redirigir
-    RewriteCond %{REQUEST_URI} !^/liga-padres-tenis/public
-    RewriteRule ^(.*)$ /liga-padres-tenis/public/$1 [R=301,L]
+    # Servir archivos estáticos que existen en public/ directamente
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Todo lo demás va a public/index.php
+    RewriteRule ^(.*)$ public/index.php [L]
 </IfModule>
