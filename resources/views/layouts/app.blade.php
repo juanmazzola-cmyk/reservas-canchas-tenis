@@ -320,6 +320,18 @@
             navigator.serviceWorker.register('/sw.js');
         }
 
+        // Manejar sesión expirada (419) de forma amigable
+        document.addEventListener('livewire:init', () => {
+            Livewire.hook('request', ({ fail }) => {
+                fail(({ status, preventDefault }) => {
+                    if (status === 419) {
+                        preventDefault()
+                        window.location.href = '{{ route("login") }}'
+                    }
+                })
+            })
+        })
+
         let deferredPrompt = null;
         const banner = document.getElementById('pwa-banner');
         const iosBanner = document.getElementById('ios-banner');
