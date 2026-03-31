@@ -11,8 +11,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Ateneo JAM">
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -37,7 +37,7 @@
          class="fixed bottom-0 left-0 right-0 z-50 bg-[#0057a8] text-white px-4 py-3 shadow-lg">
         <div class="flex items-center justify-between max-w-sm mx-auto gap-3">
             <div class="flex items-center gap-2">
-                <img src="/icons/icon-192.png" class="w-10 h-10 rounded-xl" alt="Logo">
+                <img src="/icon-192.png" class="w-10 h-10 rounded-xl" alt="Logo">
                 <div>
                     <p class="font-bold text-sm leading-tight">Instalá la app</p>
                     <p class="text-xs opacity-80">Accedé más rápido desde tu celular</p>
