@@ -154,14 +154,14 @@ class Pago extends Component
             return;
         }
 
-        // 2. Fecha no confirmada como correcta → rechazar
-        if (($verificacion['fecha_ok'] ?? null) !== true) {
-            Storage::disk('public')->delete($path);
-            $fechaEncontrada = $verificacion['fecha_encontrada'] ? ' (fecha encontrada: ' . $verificacion['fecha_encontrada'] . ')' : '';
-            $this->errorImporte = "La fecha del comprobante no corresponde al día de la reserva{$fechaEncontrada}. El pago debe realizarse el mismo día.";
-            $this->comprobante = null;
-            return;
-        }
+        // 2. Fecha no confirmada como correcta → rechazar (TEMPORALMENTE DESACTIVADO)
+        // if (($verificacion['fecha_ok'] ?? null) !== true) {
+        //     Storage::disk('public')->delete($path);
+        //     $fechaEncontrada = $verificacion['fecha_encontrada'] ? ' (fecha encontrada: ' . $verificacion['fecha_encontrada'] . ')' : '';
+        //     $this->errorImporte = "La fecha del comprobante no corresponde al día de la reserva{$fechaEncontrada}. El pago debe realizarse el mismo día.";
+        //     $this->comprobante = null;
+        //     return;
+        // }
 
         // 3. Hora fuera del rango permitido (hasta 30 min antes) → rechazar
         if (($verificacion['hora_ok'] ?? null) === false) {
