@@ -1,9 +1,10 @@
-const CACHE_NAME = 'ateneo-jam-v1';
+const CACHE_NAME = 'ateneo-jam-v2';
+
+// Solo assets estáticos, nunca páginas HTML
 const STATIC_ASSETS = [
-    '/',
-    '/manifest.json',
     '/icon-192.png',
     '/icon-512.png',
+    '/manifest.json',
 ];
 
 self.addEventListener('install', (event) => {
@@ -22,17 +23,29 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Network first, fallback to cache
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
 
+    const url = new URL(event.request.url);
+
+    // Nunca cachear páginas HTML (tienen tokens CSRF)
+    const isHtml = event.request.headers.get('Accept')?.includes('text/html')
+        || url.pathname === '/'
+        || !url.pathname.includes('.');
+
+    if (isHtml) return; // Deja que el navegador maneje directo sin SW
+
+    // Para assets estáticos: cache first
     event.respondWith(
-        fetch(event.request)
-            .then((response) => {
-                const clone = response.clone();
-                caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        caches.match(event.request).then((cached) => {
+            if (cached) return cached;
+            return fetch(event.request).then((response) => {
+                if (response.ok) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+                }
                 return response;
-            })
-            .catch(() => caches.match(event.request))
+            });
+        })
     );
 });
