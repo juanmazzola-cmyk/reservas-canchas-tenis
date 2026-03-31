@@ -163,14 +163,14 @@ class Pago extends Component
         //     return;
         // }
 
-        // 3. Hora fuera del rango permitido (hasta 30 min antes) → rechazar
-        if (($verificacion['hora_ok'] ?? null) === false) {
-            Storage::disk('public')->delete($path);
-            $horaEncontrada = $verificacion['hora_encontrada'] ? ' (hora encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
-            $this->errorImporte = "El horario del comprobante está fuera del rango permitido{$horaEncontrada}. El pago debe realizarse al momento de la reserva o hasta 30 minutos antes.";
-            $this->comprobante = null;
-            return;
-        }
+        // 3. Hora fuera del rango permitido (hasta 30 min antes) → rechazar (TEMPORALMENTE DESACTIVADO)
+        // if (($verificacion['hora_ok'] ?? null) === false) {
+        //     Storage::disk('public')->delete($path);
+        //     $horaEncontrada = $verificacion['hora_encontrada'] ? ' (hora encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
+        //     $this->errorImporte = "El horario del comprobante está fuera del rango permitido{$horaEncontrada}. El pago debe realizarse al momento de la reserva o hasta 30 minutos antes.";
+        //     $this->comprobante = null;
+        //     return;
+        // }
 
         // 4. Alias/CVU encontrado pero no coincide → rechazar (si no se lee, pasa al admin)
         if (($verificacion['alias_ok'] ?? null) === false) {
