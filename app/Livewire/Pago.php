@@ -231,8 +231,19 @@ class Pago extends Component
         }
 
         $this->errorImporte = '';
-        $valido             = $verificacion['valido'] ?? false;
-        $estadoPago         = $valido ? 'AUTHORIZED' : 'PENDING_REVIEW';
+
+        // Si es pago parcial, recalcular valido ignorando importe_ok
+        // (ya confirmamos que el importe coincide con la cuota individual)
+        if ($pagoParcial) {
+            $valido = ($verificacion['es_comprobante'] ?? false) === true
+                && ($verificacion['fecha_ok']  ?? null) === true
+                && ($verificacion['hora_ok']   ?? null) !== false
+                && ($verificacion['alias_ok']  ?? null) === true;
+        } else {
+            $valido = $verificacion['valido'] ?? false;
+        }
+
+        $estadoPago = $valido ? 'AUTHORIZED' : 'PENDING_REVIEW';
 
         $miPago->update([
             'comprobante'     => $path,

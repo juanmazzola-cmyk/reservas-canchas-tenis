@@ -817,10 +817,6 @@ class Agenda extends Component
         $reserva = Reserva::find($reservaId);
         if ($reserva) {
             $reserva->update(['esta_pagado' => true, 'estado' => 'AUTHORIZED']);
-            // Marcar todos los pagos pendientes como autorizados (cobrados en puerta)
-            \App\Models\Pago::where('reserva_id', $reservaId)
-                ->where('estado', 'PENDIENTE')
-                ->update(['estado' => 'AUTHORIZED']);
         }
         $this->modalDetalle = false;
         $this->cargarReservasYBloqueos();
