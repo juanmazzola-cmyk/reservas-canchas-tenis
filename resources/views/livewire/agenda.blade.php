@@ -195,12 +195,21 @@
                                         @endif
                                     </button>
                                     @elseif(auth()->user()->rol === 'control')
+                                    @php
+                                        $estadoCelda = $celda['estado'] ?? '';
+                                        $labelPago = match(true) {
+                                            $celda['esta_pagado']            => null,
+                                            $estadoCelda === 'PARTIAL_PAYMENT' => ['txt' => 'Pago parcial', 'cls' => 'text-amber-600'],
+                                            $estadoCelda === 'PENDING_REVIEW'  => ['txt' => 'En revisión',  'cls' => 'text-purple-600'],
+                                            default                            => ['txt' => 'Falta pago',   'cls' => 'text-red-500'],
+                                        };
+                                    @endphp
                                     <div class="w-full rounded border bg-gray-100 border-gray-200 px-1.5 py-1 text-[10px] leading-snug">
                                         @foreach($celda['apellidos'] as $ap)
                                             <div class="truncate text-center font-medium {{ str_ends_with($ap, ' *') ? 'text-orange-500' : 'text-gray-600' }}">{{ $ap }}</div>
                                         @endforeach
-                                        @if(!$celda['esta_pagado'])
-                                            <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">Falta aut.</div>
+                                        @if($labelPago)
+                                            <div class="font-semibold text-[10px] mt-0.5 text-center {{ $labelPago['cls'] }}">{{ $labelPago['txt'] }}</div>
                                         @endif
                                     </div>
                                     @else
@@ -415,6 +424,12 @@
                         <button wire:click="quitarInvitado({{ $slot }})" class="text-red-400 text-xs font-semibold pl-1">Quitar</button>
                     </div>
                     @endforeach
+                </div>
+                <div class="mt-2 bg-red-50 border border-red-300 rounded-xl px-3 py-2.5 flex items-start gap-2">
+                    <span class="text-red-500 text-base leading-none mt-0.5">⚠️</span>
+                    <p class="text-xs text-red-700">
+                        <span class="font-semibold">Reserva con invitado:</span> tenés que abonar el <strong>total completo de la reserva</strong>. No está disponible el pago dividido.
+                    </p>
                 </div>
             </div>
             @endif

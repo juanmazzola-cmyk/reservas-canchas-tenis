@@ -33,7 +33,11 @@
     <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center space-y-2">
         <div class="text-5xl">✅</div>
         <h2 class="text-xl font-bold text-green-700">¡Reserva confirmada!</h2>
+        @if(!$hayInvitados && $totalAPagar < $totalReserva)
+        <p class="text-sm text-green-600">El total de la reserva ya fue abonado por completo.</p>
+        @else
         <p class="text-sm text-green-600">Todos los pagos fueron verificados automáticamente.</p>
+        @endif
     </div>
 
     @elseif($miPagoEstado === 'AUTHORIZED' && !$todosAutorizados)
