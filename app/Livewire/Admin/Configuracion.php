@@ -27,6 +27,7 @@ class Configuracion extends Component
     public string $payment_link = '';
     public string $payment_instructions = '';
     public int $advance_booking_limit_hours = 96;
+    public int $payment_window_minutes = 30;
     public string $admin_whatsapp = '';
     public string $announcement_text = '';
     public bool $announcement_enabled = false;
@@ -56,6 +57,7 @@ class Configuracion extends Component
         $this->payment_link                 = $config->payment_link ?? '';
         $this->payment_instructions         = $config->payment_instructions ?? '';
         $this->advance_booking_limit_hours  = $config->advance_booking_limit_hours;
+        $this->payment_window_minutes       = $config->payment_window_minutes ?? 30;
         $this->admin_whatsapp               = $config->admin_whatsapp ?? '';
         $this->announcement_text            = $config->announcement_text ?? '';
         $this->announcement_enabled         = $config->announcement_enabled;
@@ -153,6 +155,7 @@ class Configuracion extends Component
             'court_count'                 => 'required|integer|min:1|max:20',
             'non_member_price'            => 'required|numeric|min:0',
             'advance_booking_limit_hours' => 'required|integer|min:1|max:720',
+            'payment_window_minutes'      => 'required|integer|min:5|max:1440',
             'admin_whatsapp'              => 'nullable|string|max:30',
             'payment_alias'               => 'nullable|string|max:100',
             'payment_link'                => 'nullable|url|max:500',
@@ -181,6 +184,7 @@ class Configuracion extends Component
             'payment_link'                 => $this->payment_link ?: null,
             'payment_instructions'         => $this->payment_instructions ?: null,
             'advance_booking_limit_hours'  => $this->advance_booking_limit_hours,
+            'payment_window_minutes'       => $this->payment_window_minutes,
             'admin_whatsapp'               => $this->admin_whatsapp ?: null,
             'announcement_text'            => $this->announcement_text ?: null,
             'announcement_enabled'         => $this->announcement_enabled,

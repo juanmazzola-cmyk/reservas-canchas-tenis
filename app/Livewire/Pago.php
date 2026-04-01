@@ -173,7 +173,9 @@ class Pago extends Component
             $config->payment_alias  ?? '',
             $config->payment_cbu    ?? '',
             $config->payment_cuenta ?? '',
-            $config->payment_cuit   ?? ''
+            $config->payment_cuit   ?? '',
+            null,
+            $config->payment_window_minutes ?? 30
         );
 
         // Rechazar si no es comprobante válido

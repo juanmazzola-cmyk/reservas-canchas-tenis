@@ -65,6 +65,13 @@
                         @error('advance_booking_limit_hours') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Ventana para enviar comprobante (minutos)</label>
+                    <input type="number" wire:model="payment_window_minutes" min="5" max="1440"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('payment_window_minutes') border-red-400 @enderror"/>
+                    <p class="text-[10px] text-gray-400 mt-0.5">El comprobante debe tener una hora dentro de esta ventana antes del momento en que se sube. Por defecto: 30 min.</p>
+                    @error('payment_window_minutes') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
             </div>
         </div>
 

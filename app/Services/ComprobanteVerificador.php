@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class ComprobanteVerificador
 {
-    public function verificar(string $rutaArchivo, float $importeEsperado, string $aliasEsperado, string $cbuEsperado = '', string $cuentaEsperada = '', string $cuitEsperado = '', ?\Carbon\Carbon $fechaHoraBase = null): array
+    public function verificar(string $rutaArchivo, float $importeEsperado, string $aliasEsperado, string $cbuEsperado = '', string $cuentaEsperada = '', string $cuitEsperado = '', ?\Carbon\Carbon $fechaHoraBase = null, int $minutosVentana = 30): array
     {
         $apiKey = config('services.anthropic.key');
 
@@ -30,11 +30,11 @@ class ComprobanteVerificador
 
         $importeFormateado = '$' . number_format($importeEsperado, 0, ',', '.');
         $ahora  = $fechaHoraBase ?? now();
-        $desde  = $ahora->copy()->subMinutes(30);
+        $desde  = $ahora->copy()->subMinutes($minutosVentana);
 
-        // Ventana válida: el comprobante debe tener una hora dentro de los 30 minutos anteriores al envío
-        // Ej: envío a las 16:00 → comprobante válido entre 15:30 y 16:00
-        // Maneja el caso medianoche: ej. transferencia a las 23:50, envío a las 00:05
+        // Ventana válida: el comprobante debe tener una hora dentro de los $minutosVentana anteriores al envío
+        // Ej: con 30 min, envío a las 16:00 → comprobante válido entre 15:30 y 16:00
+        // Maneja cruce de medianoche: ej. transferencia a las 23:50, envío a las 00:05
         $fechaHoraDesde = $desde->format('d/m/Y H:i');
         $fechaHoraHasta = $ahora->format('d/m/Y H:i');
 

@@ -24,6 +24,7 @@ class Configuracion extends Model
         'payment_link',
         'payment_instructions',
         'advance_booking_limit_hours',
+        'payment_window_minutes',
         'admin_whatsapp',
         'announcement_text',
         'announcement_enabled',
