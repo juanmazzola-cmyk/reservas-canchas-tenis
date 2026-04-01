@@ -72,34 +72,38 @@
             navigator.serviceWorker.register('/sw.js');
         }
 
-        let deferredPrompt = null;
-        const banner = document.getElementById('pwa-banner');
-        const iosBanner = document.getElementById('ios-banner');
+        if (!window.__pwaInit) {
+            window.__pwaInit = true;
+            window.deferredPrompt = null;
 
-        // Detectar iOS
-        const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-        const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            const banner = document.getElementById('pwa-banner');
+            const iosBanner = document.getElementById('ios-banner');
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if (!sessionStorage.getItem('pwa-banner-closed')) {
-                banner.style.display = 'block';
-            }
-        });
+            // Detectar iOS
+            const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-        // Mostrar banner iOS solo en registro
-        if (isIos && !isInStandalone && !sessionStorage.getItem('ios-banner-closed')) {
-            iosBanner.style.display = 'block';
-        }
-
-        function instalarPWA() {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(() => {
-                deferredPrompt = null;
-                banner.style.display = 'none';
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                window.deferredPrompt = e;
+                if (!sessionStorage.getItem('pwa-banner-closed')) {
+                    banner.style.display = 'block';
+                }
             });
+
+            // Mostrar banner iOS solo en registro
+            if (isIos && !isInStandalone && !sessionStorage.getItem('ios-banner-closed')) {
+                iosBanner.style.display = 'block';
+            }
+
+            window.instalarPWA = function() {
+                if (!window.deferredPrompt) return;
+                window.deferredPrompt.prompt();
+                window.deferredPrompt.userChoice.then(() => {
+                    window.deferredPrompt = null;
+                    banner.style.display = 'none';
+                });
+            };
         }
 
         function cerrarBanner() {

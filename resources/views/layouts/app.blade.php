@@ -361,41 +361,45 @@
             })
         })
 
-        let deferredPrompt = null;
-        const banner = document.getElementById('pwa-banner');
-        const iosBanner = document.getElementById('ios-banner');
-        const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-        const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (!window.__pwaInit) {
+            window.__pwaInit = true;
+            window.deferredPrompt = null;
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if (!sessionStorage.getItem('pwa-banner-closed')) {
-                banner.style.display = 'block';
-            }
-        });
+            const banner = document.getElementById('pwa-banner');
+            const iosBanner = document.getElementById('ios-banner');
+            const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+            const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-        if (isIos && !isInStandalone && !sessionStorage.getItem('ios-banner-closed')) {
-            iosBanner.style.display = 'block';
-        }
-
-        function instalarPWA() {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(() => {
-                deferredPrompt = null;
-                banner.style.display = 'none';
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                window.deferredPrompt = e;
+                if (!sessionStorage.getItem('pwa-banner-closed')) {
+                    banner.style.display = 'block';
+                }
             });
-        }
 
-        function cerrarBanner() {
-            banner.style.display = 'none';
-            sessionStorage.setItem('pwa-banner-closed', '1');
-        }
+            if (isIos && !isInStandalone && !sessionStorage.getItem('ios-banner-closed')) {
+                iosBanner.style.display = 'block';
+            }
 
-        function cerrarBannerIos() {
-            iosBanner.style.display = 'none';
-            sessionStorage.setItem('ios-banner-closed', '1');
+            window.instalarPWA = function() {
+                if (!window.deferredPrompt) return;
+                window.deferredPrompt.prompt();
+                window.deferredPrompt.userChoice.then(() => {
+                    window.deferredPrompt = null;
+                    banner.style.display = 'none';
+                });
+            };
+
+            window.cerrarBanner = function() {
+                banner.style.display = 'none';
+                sessionStorage.setItem('pwa-banner-closed', '1');
+            };
+
+            window.cerrarBannerIos = function() {
+                iosBanner.style.display = 'none';
+                sessionStorage.setItem('ios-banner-closed', '1');
+            };
         }
     </script>
 </body>
