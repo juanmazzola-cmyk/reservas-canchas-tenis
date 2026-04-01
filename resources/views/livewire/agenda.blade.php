@@ -198,7 +198,8 @@
                                     @php
                                         $estadoCelda = $celda['estado'] ?? '';
                                         $labelPago = match(true) {
-                                            $celda['esta_pagado']            => null,
+                                            $celda['esta_pagado']              => null,
+                                            $estadoCelda === 'AUTHORIZED'      => null,
                                             $estadoCelda === 'PARTIAL_PAYMENT' => ['txt' => 'Pago parcial', 'cls' => 'text-amber-600'],
                                             $estadoCelda === 'PENDING_REVIEW'  => ['txt' => 'En revisión',  'cls' => 'text-purple-600'],
                                             default                            => ['txt' => 'Falta pago',   'cls' => 'text-red-500'],
