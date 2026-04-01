@@ -18,7 +18,8 @@ class Pago extends Component
 
     public int   $reservaId    = 0;
     public int   $miPagoId     = 0;
-    public float $totalAPagar  = 0;
+    public float $totalAPagar  = 0;  // monto individual del usuario (su parte)
+    public float $totalReserva = 0;  // total de toda la reserva (todos los no-socios)
 
     public array  $jugadores    = [];
     public int    $cantNoSocios = 0;
@@ -115,6 +116,9 @@ class Pago extends Component
             $this->noNecesitosPagar = true;
         }
 
+        // Total completo de la reserva (suma de todos los pagos)
+        $this->totalReserva = (float) PagoModel::where('reserva_id', $r->id)->sum('monto');
+
         // Verificar si TODOS los pagos de la reserva están autorizados
         $this->todosAutorizados = $r->estado === 'AUTHORIZED';
 
@@ -165,7 +169,7 @@ class Pago extends Component
 
         $verificacion = app(ComprobanteVerificador::class)->verificar(
             $rutaLocal,
-            $miPago->monto,
+            $this->totalReserva,    // siempre verificar contra el total completo
             $config->payment_alias  ?? '',
             $config->payment_cbu    ?? '',
             $config->payment_cuenta ?? '',
@@ -180,14 +184,21 @@ class Pago extends Component
             return;
         }
 
-        // Importe incorrecto
-        if (($verificacion['importe_ok'] ?? null) === false) {
+        // Analizar importe: acepta pago total O pago parcial (solo su cuota, sin invitados)
+        $importeNum  = (float) preg_replace('/[^\d]/', '', $verificacion['importe_encontrado'] ?? '0');
+        $pagoCompleto = ($verificacion['importe_ok'] ?? null) === true;
+        $pagoParcial  = !$pagoCompleto
+            && !$this->hayInvitados
+            && $importeNum > 0
+            && abs($importeNum - $miPago->monto) < 1;
+
+        if (!$pagoCompleto && !$pagoParcial) {
             Storage::disk('public')->delete($path);
-            $importeEsperado = '$' . number_format($miPago->monto, 0, ',', '.');
+            $importeEsperado = '$' . number_format($this->totalReserva, 0, ',', '.');
             $encontrado      = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
-            $this->errorImporte = "El importe del comprobante no coincide con el monto a pagar de {$importeEsperado}{$encontrado}. Revisá que hayas transferido el monto correcto.";
-            $importeNumerico    = (float) preg_replace('/[^\d]/', '', $verificacion['importe_encontrado'] ?? '');
-            $this->pagoDemas    = $importeNumerico > 0 && $importeNumerico > $miPago->monto;
+            $importeParteStr    = '$' . number_format($miPago->monto, 0, ',', '.');
+            $this->errorImporte = "El importe del comprobante no coincide. Se esperaba {$importeEsperado} (total) o {$importeParteStr} (tu parte){$encontrado}.";
+            $this->pagoDemas    = $importeNum > 0 && $importeNum > $this->totalReserva;
             $this->comprobante  = null;
             return;
         }
@@ -229,6 +240,14 @@ class Pago extends Component
             'estado'          => $estadoPago,
         ]);
 
+        // Si pagó el total completo (no solo su parte), autorizar también los otros pagos pendientes
+        if ($valido && $pagoCompleto && !$this->hayInvitados) {
+            PagoModel::where('reserva_id', $r->id)
+                ->where('id', '!=', $miPago->id)
+                ->where('estado', 'PENDIENTE')
+                ->update(['estado' => 'AUTHORIZED', 'comprobante' => $path]);
+        }
+
         $this->verificacion = $verificacion;
         $this->miPagoEstado = $estadoPago;
         $this->enviado      = true;
@@ -240,19 +259,19 @@ class Pago extends Component
                 ->count();
 
             if ($pendientes === 0) {
-                // Todos los pagos completados → AUTHORIZED
                 $r->update(['estado' => 'AUTHORIZED', 'esta_pagado' => true]);
                 $this->turno_estado     = 'AUTHORIZED';
                 $this->todosAutorizados = true;
-                $this->dispatch('toast', message: '¡Pago verificado! Tu reserva fue confirmada.', type: 'success');
+                $msg = $pagoCompleto && !$this->hayInvitados && $this->totalReserva > $this->totalAPagar
+                    ? '¡Pago total verificado! Tu reserva fue confirmada.'
+                    : '¡Pago verificado! Tu reserva fue confirmada.';
+                $this->dispatch('toast', message: $msg, type: 'success');
             } else {
-                // Faltan otros pagos
                 $r->update(['estado' => 'PARTIAL_PAYMENT']);
                 $this->turno_estado = 'PARTIAL_PAYMENT';
-                $this->dispatch('toast', message: '¡Tu pago fue verificado! Falta que tu/s rival/es abonen su parte.', type: 'success');
+                $this->dispatch('toast', message: '¡Tu parte fue verificada! Falta que tu/s rival/es abonen la suya.', type: 'success');
             }
         } else {
-            // Verificación manual: chequear si aún hay PENDIENTE (sin comprobante)
             $pendientes  = PagoModel::where('reserva_id', $r->id)
                 ->where('estado', 'PENDIENTE')
                 ->count();

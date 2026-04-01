@@ -167,19 +167,19 @@
     </div>
 
     {{-- Total a pagar --}}
-    @if($totalAPagar > 0)
-    <div class="bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 flex items-center justify-between">
-        <div>
-            <p class="text-xs text-orange-600 font-semibold uppercase">
-                {{ $hayInvitados ? 'Total a abonar (reserva completa)' : 'Tu parte a abonar' }}
-            </p>
-            @if(!$hayInvitados)
-            <p class="text-xs text-orange-500 mt-0.5">Solo tu cuota como no socio</p>
-            @else
-            <p class="text-xs text-orange-500 mt-0.5">{{ $cantNoSocios }} jugador{{ $cantNoSocios > 1 ? 'es' : '' }} no soci{{ $cantNoSocios > 1 ? 'os' : 'o' }}</p>
-            @endif
+    @if($totalReserva > 0)
+    <div class="bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3">
+        <div class="flex items-center justify-between">
+            <p class="text-xs text-orange-600 font-semibold uppercase">Total a abonar</p>
+            <p class="text-2xl font-bold text-orange-600">${{ number_format($totalReserva, 0, ',', '.') }}</p>
         </div>
-        <p class="text-2xl font-bold text-orange-600">${{ number_format($totalAPagar, 0, ',', '.') }}</p>
+        @if(!$hayInvitados && $totalReserva > $totalAPagar)
+        <p class="text-xs text-orange-500 mt-1.5">
+            También podés abonar solo tu parte: <strong>${{ number_format($totalAPagar, 0, ',', '.') }}</strong>. Tu rival deberá abonar la suya desde Mis Turnos.
+        </p>
+        @else
+        <p class="text-xs text-orange-500 mt-0.5">{{ $cantNoSocios }} jugador{{ $cantNoSocios > 1 ? 'es' : '' }} no soci{{ $cantNoSocios > 1 ? 'os' : 'o' }}</p>
+        @endif
     </div>
     @else
     <div class="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 text-center">
