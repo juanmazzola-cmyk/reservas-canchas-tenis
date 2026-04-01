@@ -218,7 +218,8 @@ class Pago extends Component
         if (($verificacion['hora_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
             $horaEncontrada     = $verificacion['hora_encontrada'] ? ' (hora encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
-            $this->errorImporte = "El horario del comprobante está fuera del rango permitido{$horaEncontrada}. El pago debe realizarse al momento de la reserva o hasta 30 minutos antes.";
+            $ventana = $config->payment_window_minutes ?? 30;
+            $this->errorImporte = "El horario del comprobante está fuera del rango permitido{$horaEncontrada}. El pago debe realizarse al momento de la reserva o hasta {$ventana} minutos antes.";
             $this->comprobante  = null;
             return;
         }
