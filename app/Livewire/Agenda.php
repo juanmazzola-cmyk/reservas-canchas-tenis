@@ -7,6 +7,7 @@ use App\Models\Reserva;
 use App\Models\Bloqueo;
 use App\Models\Configuracion;
 use App\Models\MotivoBloqueo;
+use App\Models\Pago;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -50,10 +51,23 @@ class Agenda extends Component
 
     public function mount(): void
     {
-        // Limpiar reservas PENDING abandonadas (cualquier usuario que salió sin pagar ni cancelar)
+        // Limpiar reservas PENDING sin comprobante y sin pagos registrados (abandonadas antes del nuevo sistema)
         Reserva::where('estado', 'PENDING')
             ->whereNull('comprobante')
+            ->whereDoesntHave('pagos')
             ->delete();
+
+        // Cancelar automáticamente reservas PENDING/PARTIAL_PAYMENT que llegaron a 15 min del turno sin completar el pago
+        $pendientes = Reserva::whereIn('estado', ['PENDING', 'PARTIAL_PAYMENT'])
+            ->whereHas('pagos')
+            ->get(['id', 'dia', 'hora']);
+        foreach ($pendientes as $rp) {
+            $fhStr = $this->parsearFechaHora($rp->dia, $rp->hora);
+            if ($fhStr === '9999-12-31 99:99') continue;
+            if (Carbon::parse($fhStr)->subMinutes(15)->isPast()) {
+                $rp->delete();
+            }
+        }
 
         $this->config = Configuracion::getConfig();
         $this->motivos = MotivoBloqueo::all(['id', 'emoji', 'descripcion'])->toArray();
@@ -558,6 +572,36 @@ class Agenda extends Component
             $this->cargarReservasYBloqueos();
             $this->dispatch('toast', message: '¡Reserva confirmada! Todos los jugadores son socios.', type: 'success');
             return;
+        }
+
+        // Crear registros de pago individuales
+        $config = Configuracion::getConfig();
+        $precio = (float) ($config->non_member_price ?? 0);
+
+        if ($hayInvitados) {
+            // Con invitados: el creador paga el total de TODOS los no-socios (registrados + invitados)
+            $cantNoSociosReg  = collect($this->jugadoresSeleccionados)->where('es_socio', false)->count();
+            $cantInvitados    = count($this->invitadoApellidos);
+            $totalCreador     = ($cantNoSociosReg + $cantInvitados) * $precio;
+
+            Pago::create([
+                'reserva_id' => $reserva->id,
+                'user_id'    => Auth::id(),
+                'monto'      => $totalCreador,
+                'estado'     => 'PENDIENTE',
+            ]);
+        } else {
+            // Sin invitados: cada no-socio registrado paga su parte individual
+            foreach ($this->jugadoresSeleccionados as $jugador) {
+                if (!$jugador['es_socio']) {
+                    Pago::create([
+                        'reserva_id' => $reserva->id,
+                        'user_id'    => $jugador['id'],
+                        'monto'      => $precio,
+                        'estado'     => 'PENDIENTE',
+                    ]);
+                }
+            }
         }
 
         $this->redirect(route('pago', $reserva->id));

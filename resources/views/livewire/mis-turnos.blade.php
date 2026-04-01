@@ -39,7 +39,16 @@
                                     <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">✓ Autorizada</span>
                                 @elseif($r['esta_pagado'])
                                     <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">✓ Pagada</span>
-                                @elseif(($r['estado'] ?? '') === 'PENDING_REVIEW' || (!empty($r['comprobante']) && !$r['esta_pagado']))
+                                @elseif(($r['estado'] ?? '') === 'PARTIAL_PAYMENT')
+                                    @if(($r['mi_pago_estado'] ?? '') === 'AUTHORIZED')
+                                        <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">✓ Tu parte: pagada</span>
+                                        <span class="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-full font-medium">⏳ Rival: pendiente</span>
+                                    @elseif(($r['mi_pago_estado'] ?? '') === 'PENDING_REVIEW')
+                                        <span class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-medium">⏳ Tu parte: en revisión</span>
+                                    @else
+                                        <span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">💰 Debés abonar tu parte</span>
+                                    @endif
+                                @elseif(($r['estado'] ?? '') === 'PENDING_REVIEW')
                                     <span class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-full font-medium">⏳ Pendiente de autorización</span>
                                 @elseif(!$suspendida)
                                     <span class="bg-orange-100 text-orange-700 text-xs px-2 py-1 rounded-full font-medium">⚠ Pendiente de pago</span>
@@ -72,21 +81,30 @@
 
                 {{-- Acciones --}}
                 @if(!$r['vencida'] || ($r['estado'] ?? '') === 'SUSPENDIDA')
-                <div class="px-4 pb-4 flex gap-2">
-                    <button
-                        wire:click="confirmarReprogramar({{ $r['id'] }})"
-                        class="flex-1 border border-blue-200 text-blue-600 text-xs py-2 rounded-lg font-medium hover:bg-blue-50 transition"
-                    >
-                        Reprogramar
-                    </button>
-                    @if(!$r['vencida'])
-                    <button
-                        wire:click="confirmarCancelar({{ $r['id'] }})"
-                        class="flex-1 border border-red-200 text-red-500 text-xs py-2 rounded-lg font-medium hover:bg-red-50 transition"
-                    >
-                        Cancelar turno
-                    </button>
+                <div class="px-4 pb-4 flex flex-col gap-2">
+                    {{-- Botón pagar mi parte (solo cuando el pago del usuario está pendiente) --}}
+                    @if(!$r['vencida'] && ($r['mi_pago_estado'] ?? '') === 'PENDIENTE')
+                    <a href="{{ route('pago', $r['id']) }}"
+                       class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs py-2.5 rounded-lg font-bold text-center transition">
+                        💰 Pagar mi parte — ${{ number_format($r['mi_pago_monto'], 0, ',', '.') }}
+                    </a>
                     @endif
+                    <div class="flex gap-2">
+                        <button
+                            wire:click="confirmarReprogramar({{ $r['id'] }})"
+                            class="flex-1 border border-blue-200 text-blue-600 text-xs py-2 rounded-lg font-medium hover:bg-blue-50 transition"
+                        >
+                            Reprogramar
+                        </button>
+                        @if(!$r['vencida'])
+                        <button
+                            wire:click="confirmarCancelar({{ $r['id'] }})"
+                            class="flex-1 border border-red-200 text-red-500 text-xs py-2 rounded-lg font-medium hover:bg-red-50 transition"
+                        >
+                            Cancelar turno
+                        </button>
+                        @endif
+                    </div>
                 </div>
                 @endif
             </div>

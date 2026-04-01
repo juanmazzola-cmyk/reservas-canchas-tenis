@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Reserva;
+use App\Models\Pago as PagoModel;
 use App\Models\User;
 use App\Models\Configuracion;
 use App\Services\ComprobanteVerificador;
@@ -15,24 +16,38 @@ class Pago extends Component
 {
     use WithFileUploads;
 
-    public int $reservaId = 0;
-    public array $jugadores = [];
-    public int $cantNoSocios = 0;
-    public float $totalAPagar = 0;
+    public int   $reservaId    = 0;
+    public int   $miPagoId     = 0;
+    public float $totalAPagar  = 0;
+
+    public array  $jugadores    = [];
+    public int    $cantNoSocios = 0;
+
+    // Estado del pago del usuario actual
+    public string $miPagoEstado     = '';    // PENDIENTE | AUTHORIZED | PENDING_REVIEW
+    public bool   $noNecesitosPagar = false; // el usuario es socio, no tiene pago asignado
+    public bool   $hayInvitados     = false;
+
+    // Estado general de la reserva
+    public bool   $todosAutorizados = false;
+
+    // Subida de comprobante
     public $comprobante;
-    public bool $enviado = false;
-    public string $waUrl = '';
+    public bool   $enviado      = false;
     public ?array $verificacion = null;
     public string $errorImporte = '';
-    public bool $pagoDemas = false;
+    public bool   $pagoDemas    = false;
 
-    // datos del turno para mostrar en la vista
-    public string $turno_dia = '';
-    public string $turno_hora = '';
-    public int $turno_cancha = 0;
-    public ?string $turno_comprobante = null;
+    // Datos del turno
+    public string $turno_dia    = '';
+    public string $turno_hora   = '';
+    public int    $turno_cancha = 0;
     public string $turno_estado = '';
-    public ?string $turno_mp_status = null;
+
+    // WhatsApp admin
+    public string $waUrl = '';
+
+    // Resultado MercadoPago (flujo legacy)
     public string $mp_result = '';
 
     public function mount(int $reserva): void
@@ -44,23 +59,26 @@ class Pago extends Component
             return;
         }
 
-        if (Auth::id() !== $r->creador_id && Auth::user()->rol !== 'admin') {
+        $userId  = Auth::id();
+        $esAdmin = Auth::user()->rol === 'admin';
+
+        // Solo pueden acceder: jugadores de la reserva y admins
+        if (!in_array($userId, $r->jugadores_ids ?? []) && !$esAdmin) {
             $this->redirect(route('agenda'));
             return;
         }
 
-        $this->reservaId        = $r->id;
-        $this->turno_dia        = $r->dia;
-        $this->turno_hora       = $r->hora;
-        $this->turno_cancha     = $r->cancha_id;
-        $this->turno_comprobante = $r->comprobante;
-        $this->turno_estado     = $r->estado;
-        $this->turno_mp_status  = $r->mp_status;
-        $this->mp_result        = session('mp_result', '');
+        $this->reservaId    = $r->id;
+        $this->turno_dia    = $r->dia;
+        $this->turno_hora   = $r->hora;
+        $this->turno_cancha = $r->cancha_id;
+        $this->turno_estado = $r->estado;
+        $this->hayInvitados = !empty($r->invitados);
+        $this->mp_result    = session('mp_result', '');
 
         $config = Configuracion::getConfig();
-        $precio = (float) ($config->non_member_price ?? 0);
 
+        // Armar lista de jugadores para mostrar
         $this->jugadores = User::whereIn('id', $r->jugadores_ids ?? [])
             ->get()
             ->map(fn($u) => [
@@ -70,7 +88,6 @@ class Pago extends Component
             ])
             ->toArray();
 
-        // Agregar invitados como no-socios
         foreach ($r->invitados ?? [] as $inv) {
             $this->jugadores[] = [
                 'nombre'      => $inv['apellido'],
@@ -80,7 +97,26 @@ class Pago extends Component
         }
 
         $this->cantNoSocios = collect($this->jugadores)->where('es_socio', false)->count();
-        $this->totalAPagar  = $this->cantNoSocios * $precio;
+
+        // Buscar el pago del usuario actual
+        $miPago = PagoModel::where('reserva_id', $r->id)->where('user_id', $userId)->first();
+
+        if ($miPago) {
+            $this->miPagoId     = $miPago->id;
+            $this->totalAPagar  = $miPago->monto;
+            $this->miPagoEstado = $miPago->estado;
+
+            if (in_array($miPago->estado, ['AUTHORIZED', 'PENDING_REVIEW'])) {
+                $this->enviado      = true;
+                $this->verificacion = $miPago->verificacion_ia;
+            }
+        } else {
+            // No tiene pago asignado → es socio o admin visualizando
+            $this->noNecesitosPagar = true;
+        }
+
+        // Verificar si TODOS los pagos de la reserva están autorizados
+        $this->todosAutorizados = $r->estado === 'AUTHORIZED';
 
         // Pre-construir URL de WhatsApp para el admin
         if ($config->admin_whatsapp) {
@@ -102,7 +138,7 @@ class Pago extends Component
     {
         $r = Reserva::find($this->reservaId);
         if ($r && Auth::id() === $r->creador_id) {
-            $r->delete();
+            $r->delete(); // cascade elimina los pagos
         }
         $this->redirect(route('agenda'));
     }
@@ -120,20 +156,23 @@ class Pago extends Component
         $r = Reserva::find($this->reservaId);
         if (!$r) return;
 
+        $miPago = PagoModel::find($this->miPagoId);
+        if (!$miPago) return;
+
         $path      = $this->comprobante->store('comprobantes', 'public');
         $rutaLocal = Storage::disk('public')->path($path);
         $config    = Configuracion::getConfig();
 
         $verificacion = app(ComprobanteVerificador::class)->verificar(
             $rutaLocal,
-            $this->totalAPagar,
+            $miPago->monto,
             $config->payment_alias  ?? '',
             $config->payment_cbu    ?? '',
             $config->payment_cuenta ?? '',
             $config->payment_cuit   ?? ''
         );
 
-        // Si no se puede confirmar que es un comprobante bancario completado → rechazar
+        // Rechazar si no es comprobante válido
         if (($verificacion['es_comprobante'] ?? null) !== true) {
             Storage::disk('public')->delete($path);
             $this->errorImporte = "El archivo adjunto no es un comprobante de transferencia bancaria válido o la transferencia no está completada. Por favor adjuntá el comprobante correcto.";
@@ -141,68 +180,85 @@ class Pago extends Component
             return;
         }
 
-        // 1. Importe diferente al esperado → rechazar
+        // Importe incorrecto
         if (($verificacion['importe_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
-            $importeEsperado = '$' . number_format($this->totalAPagar, 0, ',', '.');
-            $encontrado = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
+            $importeEsperado = '$' . number_format($miPago->monto, 0, ',', '.');
+            $encontrado      = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
             $this->errorImporte = "El importe del comprobante no coincide con el monto a pagar de {$importeEsperado}{$encontrado}. Revisá que hayas transferido el monto correcto.";
-            $importeTexto = $verificacion['importe_encontrado'] ?? '';
-            $importeNumerico = (float) preg_replace('/[^\d]/', '', $importeTexto);
-            $this->pagoDemas = $importeNumerico > 0 && $importeNumerico > $this->totalAPagar;
-            $this->comprobante = null;
+            $importeNumerico    = (float) preg_replace('/[^\d]/', '', $verificacion['importe_encontrado'] ?? '');
+            $this->pagoDemas    = $importeNumerico > 0 && $importeNumerico > $miPago->monto;
+            $this->comprobante  = null;
             return;
         }
 
-        // 2. Fecha no confirmada como correcta → rechazar
+        // Fecha incorrecta
         if (($verificacion['fecha_ok'] ?? null) !== true) {
             Storage::disk('public')->delete($path);
-            $fechaEncontrada = $verificacion['fecha_encontrada'] ? ' (fecha encontrada: ' . $verificacion['fecha_encontrada'] . ')' : '';
+            $fechaEncontrada    = $verificacion['fecha_encontrada'] ? ' (fecha encontrada: ' . $verificacion['fecha_encontrada'] . ')' : '';
             $this->errorImporte = "La fecha del comprobante no corresponde al día de la reserva{$fechaEncontrada}. El pago debe realizarse el mismo día.";
-            $this->comprobante = null;
+            $this->comprobante  = null;
             return;
         }
 
-        // 3. Hora fuera del rango permitido (hasta 30 min antes) → rechazar
+        // Hora fuera de rango
         if (($verificacion['hora_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
-            $horaEncontrada = $verificacion['hora_encontrada'] ? ' (hora encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
+            $horaEncontrada     = $verificacion['hora_encontrada'] ? ' (hora encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
             $this->errorImporte = "El horario del comprobante está fuera del rango permitido{$horaEncontrada}. El pago debe realizarse al momento de la reserva o hasta 30 minutos antes.";
-            $this->comprobante = null;
+            $this->comprobante  = null;
             return;
         }
 
-        // 4. Alias/CVU encontrado pero no coincide → rechazar (si no se lee, pasa al admin)
+        // Alias/CBU incorrecto
         if (($verificacion['alias_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
-            $aliasEncontrado = $verificacion['alias_encontrado'] ? ' (encontrado: ' . $verificacion['alias_encontrado'] . ')' : '';
+            $aliasEncontrado    = $verificacion['alias_encontrado'] ? ' (encontrado: ' . $verificacion['alias_encontrado'] . ')' : '';
             $this->errorImporte = "El alias o CBU/CVU del comprobante no coincide con la cuenta del club{$aliasEncontrado}. Verificá que hayas transferido a la cuenta correcta.";
-            $this->comprobante = null;
+            $this->comprobante  = null;
             return;
         }
 
         $this->errorImporte = '';
+        $valido             = $verificacion['valido'] ?? false;
+        $estadoPago         = $valido ? 'AUTHORIZED' : 'PENDING_REVIEW';
 
-        // Confirmación automática: fecha + hora + importe + alias/CBU encontrado y correcto
-        $valido = $verificacion['valido'] ?? false;
-
-        $estadoFinal = $valido ? 'AUTHORIZED' : 'PENDING_REVIEW';
-
-        $r->update([
+        $miPago->update([
             'comprobante'     => $path,
             'verificacion_ia' => $verificacion,
-            'estado'          => $estadoFinal,
-            'esta_pagado'     => $valido,
+            'estado'          => $estadoPago,
         ]);
 
-        $this->verificacion      = $verificacion;
-        $this->turno_comprobante = $path;
-        $this->turno_estado      = $estadoFinal;
-        $this->enviado           = true;
+        $this->verificacion = $verificacion;
+        $this->miPagoEstado = $estadoPago;
+        $this->enviado      = true;
 
+        // Actualizar estado de la reserva
         if ($valido) {
-            $this->dispatch('toast', message: '¡Pago verificado! Tu reserva fue confirmada.', type: 'success');
+            $pendientes = PagoModel::where('reserva_id', $r->id)
+                ->where('estado', 'PENDIENTE')
+                ->count();
+
+            if ($pendientes === 0) {
+                // Todos los pagos completados → AUTHORIZED
+                $r->update(['estado' => 'AUTHORIZED', 'esta_pagado' => true]);
+                $this->turno_estado     = 'AUTHORIZED';
+                $this->todosAutorizados = true;
+                $this->dispatch('toast', message: '¡Pago verificado! Tu reserva fue confirmada.', type: 'success');
+            } else {
+                // Faltan otros pagos
+                $r->update(['estado' => 'PARTIAL_PAYMENT']);
+                $this->turno_estado = 'PARTIAL_PAYMENT';
+                $this->dispatch('toast', message: '¡Tu pago fue verificado! Falta que tu/s rival/es abonen su parte.', type: 'success');
+            }
         } else {
+            // Verificación manual: chequear si aún hay PENDIENTE (sin comprobante)
+            $pendientes  = PagoModel::where('reserva_id', $r->id)
+                ->where('estado', 'PENDIENTE')
+                ->count();
+            $nuevoEstado = $pendientes === 0 ? 'PENDING_REVIEW' : 'PARTIAL_PAYMENT';
+            $r->update(['estado' => $nuevoEstado]);
+            $this->turno_estado = $nuevoEstado;
             $this->dispatch('toast', message: 'Comprobante enviado. El club lo revisará manualmente.', type: 'info');
         }
     }

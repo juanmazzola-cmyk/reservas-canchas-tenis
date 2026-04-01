@@ -1,15 +1,58 @@
 <div class="space-y-4 pb-24">
 
+    @if($noNecesitosPagar)
+    {{-- El usuario es socio, no tiene pago asignado --}}
+    <div class="bg-[#0057a8] text-white rounded-2xl px-4 py-4">
+        <p class="text-xs opacity-70 uppercase font-medium mb-1">Tu reserva</p>
+        <p class="font-bold text-lg leading-tight">{{ $turno_dia }}</p>
+        <p class="text-sm opacity-90">{{ $turno_hora }} · Cancha {{ $turno_cancha }}</p>
+    </div>
 
-    @if($enviado)
-    {{-- Resultado verificación IA --}}
-    @if($verificacion && $verificacion['valido'])
+    @if($todosAutorizados)
     <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center space-y-2">
         <div class="text-5xl">✅</div>
         <h2 class="text-xl font-bold text-green-700">¡Reserva confirmada!</h2>
-        <p class="text-sm text-green-600">El pago fue verificado automáticamente.</p>
+        <p class="text-sm text-green-600">Todos los pagos fueron completados.</p>
     </div>
-    @elseif($verificacion && !$verificacion['error'])
+    @else
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center space-y-2">
+        <div class="text-4xl">⏳</div>
+        <h2 class="text-base font-bold text-blue-800">Esperando pago de tus rivales</h2>
+        <p class="text-xs text-blue-700 mt-1">Vos sos socio/a y no tenés que abonar. Tu reserva se confirmará cuando tus rivales completen el pago.</p>
+    </div>
+    @endif
+
+    <a href="{{ route('agenda') }}"
+       class="block text-center bg-terracota text-white py-3 rounded-2xl font-bold text-sm">
+        Volver a la agenda
+    </a>
+
+    @elseif($enviado)
+    {{-- Resultado después de enviar comprobante --}}
+    @if($miPagoEstado === 'AUTHORIZED' && $todosAutorizados)
+    <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center space-y-2">
+        <div class="text-5xl">✅</div>
+        <h2 class="text-xl font-bold text-green-700">¡Reserva confirmada!</h2>
+        <p class="text-sm text-green-600">Todos los pagos fueron verificados automáticamente.</p>
+    </div>
+
+    @elseif($miPagoEstado === 'AUTHORIZED' && !$todosAutorizados)
+    <div class="bg-green-50 border border-green-200 rounded-2xl p-5 space-y-3">
+        <div class="text-center">
+            <div class="text-4xl mb-1">✅</div>
+            <h2 class="text-base font-bold text-green-700">¡Tu pago fue verificado!</h2>
+            <p class="text-xs text-green-600 mt-1">Falta que tu/s rival/es abonen su parte. Te avisaremos cuando la reserva esté confirmada.</p>
+        </div>
+        @if($waUrl)
+        <a href="{{ $waUrl }}" target="_blank"
+           class="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-3 rounded-xl font-bold text-sm">
+            <svg viewBox="0 0 24 24" class="w-5 h-5 fill-white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.117 1.528 5.847L0 24l6.335-1.508A11.933 11.933 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.003-1.366l-.36-.214-3.76.896.952-3.655-.235-.376A9.808 9.808 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+            Notificar al admin por WhatsApp
+        </a>
+        @endif
+    </div>
+
+    @elseif($verificacion && !($verificacion['error'] ?? false))
     <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 space-y-3">
         <div class="text-center">
             <div class="text-4xl mb-1">⚠️</div>
@@ -38,37 +81,25 @@
             @endphp
             <div class="flex items-center justify-between">
                 <span class="text-gray-600">Fecha</span>
-                <span class="font-semibold {{ $fc }}">
-                    {{ $fi }}
-                    @if($verificacion['fecha_encontrada'] ?? null) <span class="font-normal text-gray-500">({{ $verificacion['fecha_encontrada'] }})</span> @endif
-                </span>
+                <span class="font-semibold {{ $fc }}">{{ $fi }} @if($verificacion['fecha_encontrada'] ?? null)<span class="font-normal text-gray-500">({{ $verificacion['fecha_encontrada'] }})</span>@endif</span>
             </div>
             <div class="flex items-center justify-between">
-                <span class="text-gray-600">Hora <span class="text-[10px] text-gray-400">(enviado dentro de los 30 min)</span></span>
+                <span class="text-gray-600">Hora <span class="text-[10px] text-gray-400">(±30 min)</span></span>
                 <span class="font-semibold {{ $hc }}">
-                    @if(($verificacion['hora_ok'] ?? null) === null)
-                        <span class="text-gray-400 font-normal text-[10px]">No aparece en el comprobante</span>
-                    @else
-                        {{ $hi }}
-                        @if($verificacion['hora_encontrada'] ?? null) <span class="font-normal text-gray-500">({{ $verificacion['hora_encontrada'] }})</span> @endif
+                    @if(($verificacion['hora_ok'] ?? null) === null)<span class="text-gray-400 font-normal text-[10px]">No aparece</span>
+                    @else {{ $hi }} @if($verificacion['hora_encontrada'] ?? null)<span class="font-normal text-gray-500">({{ $verificacion['hora_encontrada'] }})</span>@endif
                     @endif
                 </span>
             </div>
             <div class="flex items-center justify-between">
                 <span class="text-gray-600">Importe</span>
-                <span class="font-semibold {{ $ic }}">
-                    {{ $ii }}
-                    @if($verificacion['importe_encontrado'] ?? null) <span class="font-normal text-gray-500">({{ $verificacion['importe_encontrado'] }})</span> @endif
-                </span>
+                <span class="font-semibold {{ $ic }}">{{ $ii }} @if($verificacion['importe_encontrado'] ?? null)<span class="font-normal text-gray-500">({{ $verificacion['importe_encontrado'] }})</span>@endif</span>
             </div>
             <div class="flex items-center justify-between">
                 <span class="text-gray-600">Alias</span>
                 <span class="font-semibold {{ $ac }}">
-                    @if(($verificacion['alias_ok'] ?? null) === null)
-                        <span class="text-gray-400 font-normal text-[10px]">No aparece en el comprobante</span>
-                    @else
-                        {{ $ai }}
-                        @if($verificacion['alias_encontrado'] ?? null) <span class="font-normal text-gray-500">({{ $verificacion['alias_encontrado'] }})</span> @endif
+                    @if(($verificacion['alias_ok'] ?? null) === null)<span class="text-gray-400 font-normal text-[10px]">No aparece</span>
+                    @else {{ $ai }} @if($verificacion['alias_encontrado'] ?? null)<span class="font-normal text-gray-500">({{ $verificacion['alias_encontrado'] }})</span>@endif
                     @endif
                 </span>
             </div>
@@ -77,8 +108,8 @@
         <p class="text-[10px] text-yellow-700 text-center">{{ $verificacion['detalle'] }}</p>
         @endif
     </div>
+
     @else
-    {{-- Error de verificación (API no disponible, etc.) --}}
     <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 text-center space-y-2">
         <div class="text-5xl">📋</div>
         <h2 class="text-base font-bold text-blue-800">Comprobante enviado</h2>
@@ -99,6 +130,7 @@
     </a>
 
     @else
+    {{-- ── FORMULARIO DE PAGO ─────────────────────────────── --}}
 
     {{-- Datos del turno --}}
     <div class="bg-[#0057a8] text-white rounded-2xl px-4 py-4">
@@ -106,6 +138,17 @@
         <p class="font-bold text-lg leading-tight">{{ $turno_dia }}</p>
         <p class="text-sm opacity-90">{{ $turno_hora }} · Cancha {{ $turno_cancha }}</p>
     </div>
+
+    {{-- Aviso importante: hay invitados --}}
+    @if($hayInvitados)
+    <div class="bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 flex items-start gap-3">
+        <span class="text-2xl leading-none">⚠️</span>
+        <div>
+            <p class="text-sm font-bold text-amber-800">Reserva con invitados</p>
+            <p class="text-xs text-amber-700 mt-1">Como hay un invitado en la reserva, debés abonar el <strong>total completo</strong>. No está disponible el pago dividido.</p>
+        </div>
+    </div>
+    @endif
 
     {{-- Jugadores --}}
     <div class="bg-white rounded-2xl shadow-sm px-3 py-2">
@@ -127,14 +170,20 @@
     @if($totalAPagar > 0)
     <div class="bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 flex items-center justify-between">
         <div>
-            <p class="text-xs text-orange-600 font-semibold uppercase">Total a abonar</p>
+            <p class="text-xs text-orange-600 font-semibold uppercase">
+                {{ $hayInvitados ? 'Total a abonar (reserva completa)' : 'Tu parte a abonar' }}
+            </p>
+            @if(!$hayInvitados)
+            <p class="text-xs text-orange-500 mt-0.5">Solo tu cuota como no socio</p>
+            @else
             <p class="text-xs text-orange-500 mt-0.5">{{ $cantNoSocios }} jugador{{ $cantNoSocios > 1 ? 'es' : '' }} no soci{{ $cantNoSocios > 1 ? 'os' : 'o' }}</p>
+            @endif
         </div>
         <p class="text-2xl font-bold text-orange-600">${{ number_format($totalAPagar, 0, ',', '.') }}</p>
     </div>
     @else
     <div class="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 text-center">
-        <p class="text-sm text-green-700 font-semibold">✓ Todos los jugadores son socios — sin costo adicional</p>
+        <p class="text-sm text-green-700 font-semibold">✓ Sin costo adicional</p>
     </div>
     @endif
 
@@ -147,7 +196,7 @@
     @elseif($mp_result === 'pending')
     <div class="bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3 text-center">
         <p class="text-sm font-bold text-yellow-700">⏳ Pago pendiente</p>
-        <p class="text-xs text-yellow-600 mt-1">MercadoPago está procesando el pago. Te notificaremos cuando se confirme.</p>
+        <p class="text-xs text-yellow-600 mt-1">MercadoPago está procesando el pago.</p>
     </div>
     @elseif($mp_result === 'failure')
     <div class="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-center">
@@ -240,9 +289,9 @@
     <div class="bg-red-50 border border-red-300 rounded-2xl px-4 py-4 flex items-start gap-3">
         <span class="text-2xl leading-none">❌</span>
         <div>
-            <p class="text-sm font-bold text-red-700">Importe incorrecto</p>
+            <p class="text-sm font-bold text-red-700">Comprobante inválido</p>
             <p class="text-xs text-red-600 mt-1">{{ $errorImporte }}</p>
-            <p class="text-xs text-red-500 mt-2">Por favor realizá la transferencia por el monto correcto y subí el nuevo comprobante.</p>
+            <p class="text-xs text-red-500 mt-2">Por favor revisá el comprobante y volvé a intentarlo.</p>
             @if($pagoDemas)
             <p class="text-xs text-red-500 mt-1">Cualquier duda contactá al administrador.</p>
             @endif

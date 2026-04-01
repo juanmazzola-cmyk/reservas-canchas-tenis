@@ -177,14 +177,21 @@
                                 @elseif($celda['tipo'] === 'ocupada')
                                     @php $puedeVerDetalle = $celda['es_mia'] || auth()->user()->rol === 'admin'; @endphp
                                     @if($puedeVerDetalle)
+                                    @php
+                                        $esParcial = ($celda['estado'] ?? '') === 'PARTIAL_PAYMENT' && $celda['es_mia'];
+                                    @endphp
                                     <button wire:click="seleccionarTurno('{{ $hora }}', {{ $cancha['id'] }})"
                                         class="w-full rounded border text-left px-1.5 py-1 text-[10px] leading-snug transition
-                                            {{ $celda['es_mia'] ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' : 'bg-gray-100 border-gray-200 hover:bg-gray-200' }}">
+                                            {{ $esParcial ? 'bg-amber-100 border-amber-400 hover:bg-amber-200' : ($celda['es_mia'] ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' : 'bg-gray-100 border-gray-200 hover:bg-gray-200') }}">
                                         @foreach($celda['apellidos'] as $ap)
-                                            <div class="truncate text-center font-medium {{ str_ends_with($ap, ' *') ? 'text-orange-500' : ($celda['es_mia'] ? 'text-blue-800' : 'text-gray-600') }}">{{ $ap }}</div>
+                                            <div class="truncate text-center font-medium {{ str_ends_with($ap, ' *') ? 'text-orange-500' : ($esParcial ? 'text-amber-800' : ($celda['es_mia'] ? 'text-blue-800' : 'text-gray-600')) }}">{{ $ap }}</div>
                                         @endforeach
                                         @if(!$celda['esta_pagado'])
-                                            <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">Falta aut.</div>
+                                            @if($esParcial)
+                                                <div class="text-amber-700 font-bold text-[10px] mt-0.5 text-center">Pago pend.</div>
+                                            @else
+                                                <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">Falta aut.</div>
+                                            @endif
                                         @endif
                                     </button>
                                     @elseif(auth()->user()->rol === 'control')

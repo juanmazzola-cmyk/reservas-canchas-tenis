@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Reserva;
 use App\Models\Bloqueo;
+use App\Models\Pago;
 use App\Models\User;
 use App\Models\Configuracion;
 use Illuminate\Support\Facades\Auth;
@@ -102,10 +103,16 @@ class MisTurnos extends Component
                     'es_socio' => false,
                     'es_invitado' => true,
                 ])->toArray();
+                $miPago = Pago::where('reserva_id', $r->id)
+                    ->where('user_id', $userId)
+                    ->first();
+
                 return array_merge($r->toArray(), [
-                    'jugadores'  => array_merge($jugadores->toArray(), $invitados),
-                    'vencida'    => $this->estaVencida($r->dia, $r->hora),
-                    'fecha_sort' => $this->parsearFechaHora($r->dia, $r->hora),
+                    'jugadores'      => array_merge($jugadores->toArray(), $invitados),
+                    'vencida'        => $this->estaVencida($r->dia, $r->hora),
+                    'fecha_sort'     => $this->parsearFechaHora($r->dia, $r->hora),
+                    'mi_pago_estado' => $miPago?->estado ?? null,
+                    'mi_pago_monto'  => $miPago?->monto ?? 0,
                 ]);
             })
             ->filter(fn($r) => !$r['vencida'] || $r['estado'] === 'SUSPENDIDA')

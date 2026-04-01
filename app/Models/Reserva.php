@@ -45,4 +45,9 @@ class Reserva extends Model
         $ids = $this->jugadores_ids ?? [];
         return User::whereIn('id', $ids)->get();
     }
+
+    public function pagos()
+    {
+        return $this->hasMany(Pago::class);
+    }
 }
