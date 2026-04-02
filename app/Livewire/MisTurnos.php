@@ -107,8 +107,15 @@ class MisTurnos extends Component
                     ->where('user_id', $userId)
                     ->first();
 
+                // Estado de pago por jugador (para mostrar quién pagó y quién debe)
+                $pagosReserva = Pago::where('reserva_id', $r->id)->get()->keyBy('user_id');
+                $jugadoresConPago = $jugadores->map(fn($j) => array_merge($j->toArray(), [
+                    'es_invitado'  => false,
+                    'pago_estado'  => $pagosReserva[$j->id]?->estado ?? null,
+                ]))->toArray();
+
                 return array_merge($r->toArray(), [
-                    'jugadores'      => array_merge($jugadores->toArray(), $invitados),
+                    'jugadores'      => array_merge($jugadoresConPago, $invitados),
                     'vencida'        => $this->estaVencida($r->dia, $r->hora),
                     'fecha_sort'     => $this->parsearFechaHora($r->dia, $r->hora),
                     'mi_pago_estado' => $miPago?->estado ?? null,

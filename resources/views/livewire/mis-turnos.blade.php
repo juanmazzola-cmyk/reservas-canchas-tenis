@@ -63,7 +63,12 @@
                     <p class="text-xs text-gray-500 uppercase font-medium mb-2">Jugadores</p>
                     <div class="flex flex-wrap gap-2">
                         @foreach($r['jugadores'] as $jug)
-                        @php $esInvitado = $jug['es_invitado'] ?? false; @endphp
+                        @php
+                            $esInvitado  = $jug['es_invitado'] ?? false;
+                            $pagoEstado  = $jug['pago_estado'] ?? null;
+                            $yaPago      = in_array($pagoEstado, ['AUTHORIZED', 'PENDING_REVIEW']);
+                            $debeAbonar  = !$jug['es_socio'] && !$esInvitado && $pagoEstado === 'PENDIENTE';
+                        @endphp
                         <div class="flex items-center gap-1.5 {{ $esInvitado ? 'bg-amber-50' : 'bg-blue-50' }} rounded-full px-3 py-1">
                             <div class="w-5 h-5 {{ $esInvitado ? 'bg-amber-400' : 'bg-[#0057a8]' }} text-white rounded-full flex items-center justify-center text-[10px] font-bold">
                                 {{ $esInvitado ? '?' : strtoupper(substr($jug['nombre'], 0, 1)) }}
@@ -71,8 +76,12 @@
                             <span class="text-xs {{ $esInvitado ? 'text-amber-800' : 'text-blue-800' }}">{{ $jug['apellido'] }}</span>
                             @if($esInvitado)
                                 <span class="text-[10px] text-amber-500">inv.</span>
-                            @elseif(!$jug['es_socio'])
-                                <span class="text-[10px] text-orange-500">$</span>
+                            @elseif($jug['es_socio'])
+                                <span class="text-[10px] text-green-600 font-medium">socio</span>
+                            @elseif($yaPago)
+                                <span class="text-[10px] text-green-600 font-semibold">pagó ✓</span>
+                            @elseif($debeAbonar)
+                                <span class="text-[10px] text-red-500 font-semibold">debe</span>
                             @endif
                         </div>
                         @endforeach
