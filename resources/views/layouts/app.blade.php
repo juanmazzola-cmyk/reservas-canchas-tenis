@@ -186,7 +186,10 @@
 
             @if($rol === 'usuario')
                 {{-- Mis Turnos --}}
-                @php $haySuspendidas = \App\Models\Reserva::whereJsonContains('jugadores_ids', auth()->id())->where('estado', 'SUSPENDIDA')->exists(); @endphp
+                @php
+                    $haySuspendidas   = \App\Models\Reserva::whereJsonContains('jugadores_ids', auth()->id())->where('estado', 'SUSPENDIDA')->exists();
+                    $hayPagoPendiente = \App\Models\Pago::where('user_id', auth()->id())->where('estado', 'PENDIENTE')->exists();
+                @endphp
                 <a href="{{ route('mis-turnos') }}" wire:navigate
                    class="flex flex-col items-center gap-0.5 text-xs px-2 py-1 rounded transition-colors {{ request()->routeIs('mis-turnos') ? 'text-yellow-300 font-semibold' : 'text-gray-900 opacity-80 hover:opacity-100' }}">
                     <div class="relative">
@@ -198,6 +201,9 @@
                         </svg>
                         @if($haySuspendidas)
                             <span class="absolute -top-2 -right-2 text-base leading-none drop-shadow">⚠️</span>
+                        @endif
+                        @if($hayPagoPendiente)
+                            <span class="absolute -top-2 -left-2 text-base leading-none drop-shadow">💰</span>
                         @endif
                     </div>
                     <span>Mis Turnos</span>

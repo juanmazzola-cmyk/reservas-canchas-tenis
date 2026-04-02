@@ -280,17 +280,17 @@ class Pago extends Component
 
             if ($pendientes === 0) {
                 $r->update(['estado' => 'AUTHORIZED', 'esta_pagado' => true]);
-                $this->turno_estado     = 'AUTHORIZED';
-                $this->todosAutorizados = true;
                 $msg = $pagoCompleto && !$this->hayInvitados && $this->totalReserva > $this->totalAPagar
                     ? '¡Pago total verificado! Tu reserva fue confirmada.'
                     : '¡Pago verificado! Tu reserva fue confirmada.';
-                $this->dispatch('toast', message: $msg, type: 'success');
             } else {
                 $r->update(['estado' => 'PARTIAL_PAYMENT']);
-                $this->turno_estado = 'PARTIAL_PAYMENT';
-                $this->dispatch('toast', message: '¡Tu parte fue verificada! Falta que tu/s rival/es abonen la suya.', type: 'success');
+                $msg = '¡Tu parte fue verificada! Falta que tu/s rival/es abonen la suya.';
             }
+
+            $this->dispatch('toast', message: $msg, type: 'success');
+            $this->redirect(route('agenda'));
+            return;
         } else {
             $pendientes  = PagoModel::where('reserva_id', $r->id)
                 ->where('estado', 'PENDIENTE')
