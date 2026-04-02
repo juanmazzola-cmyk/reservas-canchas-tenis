@@ -31,6 +31,10 @@ class Pago extends Component
     public bool   $noNecesitosPagar = false; // el usuario es socio, no tiene pago asignado
     public bool   $hayInvitados     = false;
 
+    // Socio que elige pagar voluntariamente
+    public bool   $puedeOfrecerPago = false; // socio con rival no-socio pendiente
+    public bool   $socioQuierePagar = false; // eligió pagar él
+
     // Estado general de la reserva
     public bool   $todosAutorizados = false;
 
@@ -131,6 +135,12 @@ class Pago extends Component
         // Verificar si TODOS los pagos de la reserva están autorizados
         $this->todosAutorizados = $r->estado === 'AUTHORIZED';
 
+        // Socio puede optar por pagar si hay montos pendientes
+        if ($this->noNecesitosPagar && $this->montoRestante > 0) {
+            $this->puedeOfrecerPago = true;
+            $this->totalAPagar      = $this->montoRestante;
+        }
+
         // Pre-construir URL de WhatsApp para el admin
         if ($config->admin_whatsapp) {
             $tel    = preg_replace('/\D/', '', $config->admin_whatsapp);
@@ -145,6 +155,19 @@ class Pago extends Component
             );
             $this->waUrl = "https://wa.me/{$tel}?text={$msg}";
         }
+    }
+
+    public function ofrecerPagar(): void
+    {
+        $primerPago = PagoModel::where('reserva_id', $this->reservaId)
+            ->where('estado', 'PENDIENTE')
+            ->first();
+
+        if (!$primerPago) return;
+
+        $this->miPagoId         = $primerPago->id;
+        $this->miPagoEstado     = 'PENDIENTE';
+        $this->socioQuierePagar = true;
     }
 
     public function updatedComprobante(): void

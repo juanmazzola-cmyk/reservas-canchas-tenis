@@ -1,7 +1,7 @@
 <div class="space-y-4 pb-24">
 
     @if($noNecesitosPagar)
-    {{-- El usuario es socio, no tiene pago asignado --}}
+    {{-- El usuario es socio --}}
     <div class="bg-[#0057a8] text-white rounded-2xl px-4 py-4">
         <p class="text-xs opacity-70 uppercase font-medium mb-1">Tu reserva</p>
         <p class="font-bold text-lg leading-tight">{{ $turno_dia }}</p>
@@ -9,23 +9,119 @@
     </div>
 
     @if($todosAutorizados)
+    {{-- Reserva confirmada --}}
     <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center space-y-2">
         <div class="text-5xl">✅</div>
         <h2 class="text-xl font-bold text-green-700">¡Reserva confirmada!</h2>
         <p class="text-sm text-green-600">Todos los pagos fueron completados.</p>
     </div>
-    @else
-    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center space-y-2">
-        <div class="text-4xl">⏳</div>
-        <h2 class="text-base font-bold text-blue-800">Esperando pago de tus rivales</h2>
-        <p class="text-xs text-blue-700 mt-1">Vos sos socio/a y no tenés que abonar. Tu reserva se confirmará cuando tus rivales completen el pago.</p>
+    <a href="{{ route('agenda') }}" class="block text-center bg-terracota text-white py-3 rounded-2xl font-bold text-sm">
+        Volver a la agenda
+    </a>
+
+    @elseif($socioQuierePagar && $enviado && $miPagoEstado === 'PENDING_REVIEW')
+    {{-- Socio pagó pero quedó en revisión --}}
+    <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 text-center space-y-2">
+        <div class="text-4xl">⚠️</div>
+        <h2 class="text-base font-bold text-yellow-800">Comprobante en revisión</h2>
+        <p class="text-xs text-yellow-700 mt-1">No pudimos confirmarlo automáticamente. El club lo revisará.</p>
+    </div>
+    <a href="{{ route('agenda') }}" class="block text-center bg-terracota text-white py-3 rounded-2xl font-bold text-sm">
+        Volver a la agenda
+    </a>
+
+    @elseif($socioQuierePagar)
+    {{-- Socio eligió pagar: mostrar formulario de pago --}}
+    <div class="bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3">
+        <div class="flex items-center justify-between">
+            <p class="text-xs text-orange-600 font-semibold uppercase">Total a abonar</p>
+            <p class="text-2xl font-bold text-orange-600">${{ number_format($totalAPagar, 0, ',', '.') }}</p>
+        </div>
+        <p class="text-xs text-orange-500 mt-0.5">Estás pagando en nombre de tu/s rival/es no soci{{ $cantNoSocios > 1 ? 'os' : 'o' }}</p>
+    </div>
+
+    @if($config->payment_alias)
+    <div class="bg-white rounded-2xl shadow-sm px-3 py-3">
+        <p class="text-[10px] font-semibold text-gray-500 uppercase mb-1">Transferencia</p>
+        <p class="text-xs font-bold text-gray-800 tracking-wide">{{ $config->payment_alias }}</p>
     </div>
     @endif
 
-    <a href="{{ route('agenda') }}"
-       class="block text-center bg-terracota text-white py-3 rounded-2xl font-bold text-sm">
+    {{-- Upload --}}
+    <div class="bg-white rounded-2xl shadow-sm px-4 py-4">
+        <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Adjuntar comprobante</p>
+        <label class="block w-full cursor-pointer">
+            <div class="border-2 border-dashed border-gray-300 rounded-xl px-4 py-6 text-center hover:border-[#0057a8] transition-colors">
+                @if($comprobante)
+                    <p class="text-sm text-green-600 font-medium">✓ {{ $comprobante->getClientOriginalName() }}</p>
+                    <p class="text-xs text-gray-400 mt-1">Tocá para cambiar</p>
+                @else
+                    <p class="text-3xl mb-2">📎</p>
+                    <p class="text-sm text-gray-500 font-medium">Tocá para adjuntar</p>
+                    <p class="text-xs text-gray-400 mt-1">JPG, PNG o PDF · máx. 5 MB</p>
+                @endif
+            </div>
+            <input type="file" wire:model="comprobante" accept=".jpg,.jpeg,.png,.pdf" class="hidden"/>
+        </label>
+        @error('comprobante') <p class="text-red-500 text-xs mt-2">{{ $message }}</p> @enderror
+        <div wire:loading wire:target="comprobante" class="text-xs text-gray-400 mt-2 text-center">Cargando archivo...</div>
+    </div>
+
+    @if($errorImporte)
+    <div class="bg-red-50 border border-red-300 rounded-2xl px-4 py-4 flex items-start gap-3">
+        <span class="text-2xl leading-none">❌</span>
+        <div>
+            <p class="text-sm font-bold text-red-700">Comprobante inválido</p>
+            <p class="text-xs text-red-600 mt-1">{{ $errorImporte }}</p>
+            <p class="text-xs text-red-500 mt-2">Por favor revisá el comprobante y volvé a intentarlo.</p>
+        </div>
+    </div>
+    @endif
+
+    <div x-data="{ procesando: false }" x-init="$watch('$wire.errorImporte', v => { if (v) procesando = false })">
+        <button
+            wire:click="enviarComprobante"
+            @click="if ($wire.comprobante) procesando = true"
+            :disabled="procesando || {{ $comprobante ? 'false' : 'true' }}"
+            class="w-full bg-[#0057a8] text-white py-4 rounded-2xl font-bold text-base shadow-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+            <span x-show="!procesando">{{ $comprobante ? 'Enviar comprobante y confirmar reserva' : 'Adjuntá el comprobante' }}</span>
+            <span x-show="procesando">Verificando comprobante...</span>
+        </button>
+    </div>
+    <button wire:click="$set('socioQuierePagar', false)"
+            class="w-full border border-gray-300 text-gray-500 py-3 rounded-2xl text-sm font-medium hover:bg-gray-50 transition-colors">
+        ← No, que pague el/la rival
+    </button>
+
+    @elseif($puedeOfrecerPago)
+    {{-- Socio puede elegir --}}
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 space-y-3">
+        <div class="text-center">
+            <div class="text-4xl mb-1">💰</div>
+            <h2 class="text-base font-bold text-blue-800">¿Cómo querés proceder?</h2>
+            <p class="text-xs text-blue-600 mt-1">Vos sos socio/a. El pago de tu/s rival/es no-soci{{ $cantNoSocios > 1 ? 'os' : 'o' }} está pendiente.</p>
+        </div>
+        <button wire:click="ofrecerPagar"
+                class="w-full bg-[#0057a8] text-white py-3 rounded-xl font-bold text-sm">
+            Pagar yo la reserva (${{ number_format($totalAPagar, 0, ',', '.') }})
+        </button>
+        <a href="{{ route('agenda') }}"
+           class="block text-center border border-gray-300 text-gray-600 py-3 rounded-xl text-sm font-medium hover:bg-gray-50">
+            Dejar que pague el/la rival
+        </a>
+    </div>
+
+    @else
+    {{-- Socio sin opción de pago (rivals ya pagaron o están en revisión) --}}
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center space-y-2">
+        <div class="text-4xl">⏳</div>
+        <h2 class="text-base font-bold text-blue-800">Esperando pago de tus rivales</h2>
+        <p class="text-xs text-blue-700 mt-1">Tu reserva se confirmará cuando tus rivales completen el pago.</p>
+    </div>
+    <a href="{{ route('agenda') }}" class="block text-center bg-terracota text-white py-3 rounded-2xl font-bold text-sm">
         Volver a la agenda
     </a>
+    @endif
 
     @elseif($enviado)
     {{-- Resultado después de enviar comprobante --}}
