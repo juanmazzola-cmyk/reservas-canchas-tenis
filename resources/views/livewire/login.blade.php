@@ -41,7 +41,9 @@
             </div>
             @endif
 
-            <form method="POST" action="{{ route('login.post') }}">
+            <form method="POST" action="{{ route('login.post') }}"
+                  x-data="{ puedeEnviar: false }"
+                  @submit.prevent="if(puedeEnviar) { puedeEnviar = false; $el.submit() }">
             @csrf
 
             <div class="mb-4">
@@ -83,6 +85,7 @@
 
             <button
                 type="submit"
+                @click="puedeEnviar = true"
                 class="w-full bg-[#16a34a] hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors text-sm tracking-wide">
                 INGRESAR
             </button>
