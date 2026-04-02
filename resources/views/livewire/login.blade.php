@@ -26,7 +26,7 @@
             <div x-show="visible" class="mx-4 mt-4 bg-amber-400 rounded-2xl p-4 text-center shadow-md">
                 <p class="text-amber-900 font-bold text-base leading-tight">¿Primera vez que ingresás?</p>
                 <a href="{{ route('registro') }}"
-                   @click="localStorage.setItem('ya_ingrese', '1'); visible = false"
+                   @click="localStorage.setItem('ya_ingrese', '1')"
                    class="inline-block mt-3 bg-amber-900 text-white font-bold text-sm px-6 py-2.5 rounded-full hover:bg-amber-800 transition">
                     Registrarme ahora
                 </a>
