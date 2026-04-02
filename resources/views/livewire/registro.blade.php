@@ -35,6 +35,19 @@
                     @error('apellido') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                <!-- DNI -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">DNI *</label>
+                    <input
+                        type="number"
+                        inputmode="numeric"
+                        wire:model="dni"
+                        placeholder="Ej: 30123456"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('dni') border-red-400 @enderror"
+                    />
+                    @error('dni') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+
                 <!-- Teléfono -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono *</label>

@@ -17,17 +17,19 @@
                 </div>
                 @endif
 
-                <p class="text-sm text-gray-600 mb-4">Ingresá el email con el que te registraste y te enviaremos una contraseña temporal al WhatsApp asociado a tu cuenta.</p>
+                <p class="text-sm text-gray-600 mb-4">Ingresá tu DNI y te enviaremos una contraseña temporal al WhatsApp asociado a tu cuenta.</p>
 
                 <div class="mb-5">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">DNI</label>
                     <input
-                        type="email"
-                        wire:model="email"
-                        placeholder="tu@email.com"
-                        autocomplete="email"
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('email') border-red-400 @enderror"
+                        type="number"
+                        inputmode="numeric"
+                        wire:model="dni"
+                        placeholder="Ej: 30123456"
+                        autocomplete="off"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('dni') border-red-400 @enderror"
                     />
+                    @error('dni') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <button

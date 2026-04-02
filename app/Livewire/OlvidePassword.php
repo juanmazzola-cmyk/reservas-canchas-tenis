@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 
 class OlvidePassword extends Component
 {
-    public string $email = '';
+    public string $dni = '';
     public int $paso = 1; // 1=form, 2=enviado
     public string $waUrl = '';
     public string $nombreUsuario = '';
@@ -17,21 +17,20 @@ class OlvidePassword extends Component
     public function enviar(): void
     {
         $this->validate([
-            'email' => 'required|email',
+            'dni' => 'required',
         ], [
-            'email.required' => 'Ingresá tu email.',
-            'email.email'    => 'El email no es válido.',
+            'dni.required' => 'Ingresá tu DNI.',
         ]);
 
-        $user = User::where('email', strtolower(trim($this->email)))->first();
+        $user = User::where('dni', trim($this->dni))->first();
 
         if (!$user) {
-            $this->addError('email', 'No encontramos una cuenta con ese email.');
+            $this->addError('dni', 'No encontramos una cuenta con ese DNI.');
             return;
         }
 
         if (!$user->telefono) {
-            $this->addError('email', 'Tu cuenta no tiene teléfono registrado. Contactá al administrador.');
+            $this->addError('dni', 'Tu cuenta no tiene teléfono registrado. Contactá al administrador.');
             return;
         }
 

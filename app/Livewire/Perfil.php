@@ -11,6 +11,7 @@ class Perfil extends Component
 {
     public string $nombre = '';
     public string $apellido = '';
+    public string $dni = '';
     public string $telefono = '';
     public string $email = '';
 
@@ -23,6 +24,7 @@ class Perfil extends Component
         $user = Auth::user();
         $this->nombre   = $user->nombre;
         $this->apellido = $user->apellido;
+        $this->dni      = $user->dni ?? '';
         $this->telefono = $user->telefono ?? '';
         $this->email    = $user->email;
     }
@@ -34,11 +36,14 @@ class Perfil extends Component
         $this->validate([
             'nombre'   => 'required|string|min:2|max:100',
             'apellido' => 'required|string|min:2|max:100',
+            'dni'      => ['required', 'string', 'max:20', Rule::unique('users', 'dni')->ignore($user->id)],
             'telefono' => 'nullable|string|max:20',
             'email'    => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
         ], [
             'nombre.required'   => 'El nombre es obligatorio.',
             'apellido.required' => 'El apellido es obligatorio.',
+            'dni.required'      => 'El DNI es obligatorio.',
+            'dni.unique'        => 'Ese DNI ya está registrado.',
             'email.required'    => 'El email es obligatorio.',
             'email.email'       => 'El email no es válido.',
             'email.unique'      => 'Ese email ya está en uso.',
@@ -47,6 +52,7 @@ class Perfil extends Component
         $user->update([
             'nombre'   => trim($this->nombre),
             'apellido' => trim($this->apellido),
+            'dni'      => trim($this->dni),
             'telefono' => trim($this->telefono),
             'email'    => strtolower(trim($this->email)),
         ]);

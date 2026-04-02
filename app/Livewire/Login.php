@@ -8,34 +8,31 @@ use App\Models\Configuracion;
 
 class Login extends Component
 {
-    public string $email = '';
+    public string $dni = '';
     public string $password = '';
     public bool $showPassword = false;
 
     public function login(): void
     {
         $this->validate([
-            'email'    => 'required|email',
+            'dni'      => 'required',
             'password' => 'required',
         ], [
-            'email.required'    => 'El email es obligatorio.',
-            'email.email'       => 'El email no es válido.',
+            'dni.required'      => 'El DNI es obligatorio.',
             'password.required' => 'La contraseña es obligatoria.',
         ]);
 
-        $credentials = [
-            'email'    => strtolower(trim($this->email)),
-            'password' => $this->password,
-        ];
+        $user = \App\Models\User::where('dni', trim($this->dni))->first();
 
-        if (Auth::attempt($credentials)) {
-            session()->regenerate();
-            session()->save();
-            $this->redirect(route('agenda'), navigate: false);
+        if (!$user || !\Illuminate\Support\Facades\Hash::check($this->password, $user->password)) {
+            $this->addError('dni', 'DNI o contraseña incorrectos.');
             return;
         }
 
-        $this->addError('email', 'Credenciales incorrectas.');
+        Auth::login($user);
+        session()->regenerate();
+        session()->save();
+        $this->redirect(route('agenda'), navigate: false);
     }
 
     public function render()

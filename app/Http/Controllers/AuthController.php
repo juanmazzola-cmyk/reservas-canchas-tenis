@@ -16,20 +16,18 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = [
-            'email' => strtolower(trim($request->email)),
-            'password' => $request->password,
-        ];
+        $user = \App\Models\User::where('dni', trim($request->dni))->first();
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            if (Auth::user()->must_change_password) {
-                session()->flash('recordar_cambiar_password', true);
-            }
-            return redirect()->route('agenda');
+        if (!$user || !\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+            return back()->withErrors(['dni' => 'DNI o contraseña incorrectos.'])->withInput(['dni' => $request->dni]);
         }
 
-        return back()->withErrors(['email' => 'Credenciales incorrectas.']);
+        Auth::login($user);
+        $request->session()->regenerate();
+        if (Auth::user()->must_change_password) {
+            session()->flash('recordar_cambiar_password', true);
+        }
+        return redirect()->route('agenda');
     }
 
     public function logout(Request $request)

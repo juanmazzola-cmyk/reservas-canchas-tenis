@@ -37,6 +37,11 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">DNI</label>
+                    <input type="number" inputmode="numeric" wire:model="dni" placeholder="Ej: 30123456" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('dni') border-red-400 @enderror"/>
+                    @error('dni') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Teléfono</label>
                     <input type="tel" wire:model="telefono" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"/>
                 </div>
