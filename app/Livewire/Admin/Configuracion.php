@@ -155,7 +155,7 @@ class Configuracion extends Component
             'court_count'                 => 'required|integer|min:1|max:20',
             'non_member_price'            => 'required|numeric|min:0',
             'advance_booking_limit_hours' => 'required|integer|min:1|max:720',
-            'payment_window_minutes'      => 'required|integer|min:5|max:1440',
+            'payment_window_minutes'      => 'required|integer|min:5|max:99999',
             'admin_whatsapp'              => 'nullable|string|max:30',
             'payment_alias'               => 'nullable|string|max:100',
             'payment_link'                => 'nullable|url|max:500',
