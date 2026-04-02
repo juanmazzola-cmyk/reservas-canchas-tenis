@@ -91,6 +91,13 @@ class MisTurnos extends Component
 
     public function cargarReservas(): void
     {
+        $esControl = Auth::user()->rol === 'control';
+
+        if ($esControl) {
+            $this->cargarReservasControl();
+            return;
+        }
+
         $userId = Auth::id();
         $this->reservas = Reserva::whereJsonContains('jugadores_ids', $userId)
             ->get()
@@ -107,7 +114,6 @@ class MisTurnos extends Component
                     ->where('user_id', $userId)
                     ->first();
 
-                // Estado de pago por jugador (para mostrar quién pagó y quién debe)
                 $pagosReserva = Pago::where('reserva_id', $r->id)->get()->keyBy('user_id');
                 $jugadoresConPago = $jugadores->map(fn($j) => array_merge($j->toArray(), [
                     'es_invitado'  => false,
@@ -123,6 +129,48 @@ class MisTurnos extends Component
                 ]);
             })
             ->filter(fn($r) => !$r['vencida'] || $r['estado'] === 'SUSPENDIDA')
+            ->sortBy('fecha_sort')
+            ->values()
+            ->toArray();
+    }
+
+    private function cargarReservasControl(): void
+    {
+        $hoy = Carbon::today();
+        $diaStr = strtolower(
+            ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'][$hoy->dayOfWeek]
+            . ' ' . $hoy->format('d') . ' '
+            . ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][$hoy->month]
+        );
+
+        $this->reservas = Reserva::where('dia', $diaStr)
+            ->where('estado', '!=', 'SUSPENDIDA')
+            ->get()
+            ->map(function ($r) {
+                $jugadores = User::whereIn('id', $r->jugadores_ids ?? [])->get(['id', 'nombre', 'apellido', 'es_socio']);
+                $invitados = collect($r->invitados ?? [])->map(fn($inv) => [
+                    'id'          => null,
+                    'nombre'      => 'Invitado',
+                    'apellido'    => $inv['apellido'] ?? '',
+                    'es_socio'    => false,
+                    'es_invitado' => true,
+                    'pago_estado' => null,
+                ])->toArray();
+
+                $pagosReserva = Pago::where('reserva_id', $r->id)->get()->keyBy('user_id');
+                $jugadoresConPago = $jugadores->map(fn($j) => array_merge($j->toArray(), [
+                    'es_invitado' => false,
+                    'pago_estado' => $pagosReserva[$j->id]?->estado ?? null,
+                ]))->toArray();
+
+                return array_merge($r->toArray(), [
+                    'jugadores'      => array_merge($jugadoresConPago, $invitados),
+                    'vencida'        => false,
+                    'fecha_sort'     => $this->parsearFechaHora($r->dia, $r->hora),
+                    'mi_pago_estado' => null,
+                    'mi_pago_monto'  => 0,
+                ]);
+            })
             ->sortBy('fecha_sort')
             ->values()
             ->toArray();

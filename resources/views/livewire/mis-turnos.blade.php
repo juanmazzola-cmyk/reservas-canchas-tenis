@@ -1,5 +1,11 @@
 <div>
-    <h2 class="text-xl font-bold text-gray-800 mb-4">Mis Turnos</h2>
+    @php $esControl = auth()->user()->rol === 'control'; @endphp
+    <h2 class="text-xl font-bold text-gray-800 mb-1">Mis Turnos</h2>
+    @if($esControl)
+        <p class="text-sm text-gray-500 mb-4">Reservas de hoy</p>
+    @else
+        <div class="mb-4"></div>
+    @endif
 
     @if(empty($reservas))
         <div class="bg-white rounded-2xl p-8 text-center shadow-sm">
@@ -89,7 +95,7 @@
                 </div>
 
                 {{-- Acciones --}}
-                @if(!$r['vencida'] || ($r['estado'] ?? '') === 'SUSPENDIDA')
+                @if(!$esControl && (!$r['vencida'] || ($r['estado'] ?? '') === 'SUSPENDIDA'))
                 <div class="px-4 pb-4 flex flex-col gap-2">
                     {{-- Botón pagar mi parte (solo cuando el pago del usuario está pendiente) --}}
                     @if(!$r['vencida'] && ($r['mi_pago_estado'] ?? '') === 'PENDIENTE')

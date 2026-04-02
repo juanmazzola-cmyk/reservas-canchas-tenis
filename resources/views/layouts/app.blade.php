@@ -302,7 +302,17 @@
             @endif
 
             @if($rol === 'control')
-                {{-- Solo Agenda, ya agregada arriba --}}
+                {{-- Mis Turnos (turnos de hoy) --}}
+                <a href="{{ route('mis-turnos') }}" wire:navigate
+                   class="flex flex-col items-center gap-0.5 text-xs px-2 py-1 rounded transition-colors {{ request()->routeIs('mis-turnos') ? 'text-yellow-300 font-semibold' : 'text-gray-900 opacity-80 hover:opacity-100' }}">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="16" y1="2" x2="16" y2="6" stroke-linecap="round"/>
+                        <line x1="8" y1="2" x2="8" y2="6" stroke-linecap="round"/>
+                        <line x1="3" y1="10" x2="21" y2="10" stroke-linecap="round"/>
+                    </svg>
+                    <span>Mis Turnos</span>
+                </a>
                 @if($cfgUbic?->admin_whatsapp)
                 @php
                     $waNumero = preg_replace('/\D/', '', $cfgUbic->admin_whatsapp);
