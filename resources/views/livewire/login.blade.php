@@ -95,14 +95,8 @@
 
             </form>
 
-            <div class="mt-5 text-center space-y-3">
-                <p class="text-sm text-gray-500">
-                    <a href="{{ route('olvide-password') }}" class="text-[#0057a8] hover:underline">Olvidé mi contraseña</a>
-                </p>
-                <p class="text-sm text-gray-600">
-                    ¿No tenés cuenta?
-                    <a href="{{ route('registro') }}" class="text-[#0057a8] font-medium hover:underline">Registrate</a>
-                </p>
+            <div class="mt-5 text-center">
+                <a href="{{ route('olvide-password') }}" class="text-[#0057a8] font-medium text-base hover:underline">Olvidé mi contraseña</a>
             </div>
             <p class="text-center text-xs text-gray-400 mt-2">{{ $clubName }} © {{ date('Y') }}</p>
         </div>
