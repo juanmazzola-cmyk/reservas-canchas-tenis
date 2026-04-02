@@ -54,7 +54,7 @@
                 <input
                     id="dni"
                     name="dni"
-                    type="number"
+                    type="text"
                     inputmode="numeric"
                     placeholder="Ej: 30123456"
                     autocomplete="off"
