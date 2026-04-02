@@ -138,6 +138,12 @@ class Pago extends Component
         }
     }
 
+    public function updatedComprobante(): void
+    {
+        $this->errorImporte = '';
+        $this->pagoDemas    = false;
+    }
+
     public function cancelarYVolver(): void
     {
         $r = Reserva::find($this->reservaId);
