@@ -312,17 +312,20 @@
     @endif
 
     {{-- Botón enviar --}}
-    <button
-        wire:click="enviarComprobante"
-        wire:loading.attr="disabled" wire:target="enviarComprobante"
-        @if(!$comprobante) disabled @endif
-        class="w-full bg-[#0057a8] text-white py-4 rounded-2xl font-bold text-base shadow-md
-               hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
-        <span wire:loading.remove wire:target="enviarComprobante">
-            @if(!$comprobante) Adjuntá el comprobante @else Enviar comprobante y confirmar reserva @endif
-        </span>
-        <span wire:loading wire:target="enviarComprobante">Verificando comprobante...</span>
-    </button>
+    <div x-data="{ procesando: false }"
+         x-init="$watch('$wire.errorImporte', v => { if (v) procesando = false })">
+        <button
+            wire:click="enviarComprobante"
+            @click="if ($wire.comprobante) procesando = true"
+            :disabled="procesando || {{ $comprobante ? 'false' : 'true' }}"
+            class="w-full bg-[#0057a8] text-white py-4 rounded-2xl font-bold text-base shadow-md
+                   hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+            <span x-show="!procesando">
+                {{ $comprobante ? 'Enviar comprobante y confirmar reserva' : 'Adjuntá el comprobante' }}
+            </span>
+            <span x-show="procesando">Verificando comprobante...</span>
+        </button>
+    </div>
 
     @endif {{-- miPagoEstado === PENDIENTE --}}
     @endif {{-- outer @else --}}

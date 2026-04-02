@@ -438,13 +438,14 @@
         </div>
 
         {{-- Footer confirmar --}}
-        <div class="flex-shrink-0 px-4 pt-3 pb-20 border-t border-gray-100 bg-white">
+        <div class="flex-shrink-0 px-4 pt-3 pb-20 border-t border-gray-100 bg-white"
+             x-data="{ cargando: false }">
             <button
                 wire:click="confirmarReserva"
-                wire:loading.attr="disabled" wire:target="confirmarReserva"
-                @if(!$puedeConfirmar) disabled @endif
+                @click="cargando = true"
+                :disabled="cargando || {{ $puedeConfirmar ? 'false' : 'true' }}"
                 class="w-full bg-[#0057a8] text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
-                <span wire:loading.remove wire:target="confirmarReserva">
+                <span x-show="!cargando">
                     @if($avisoConflicto)
                         No se puede confirmar
                     @elseif($totalActual < $maxJugadores)
@@ -455,7 +456,7 @@
                         CONFIRMAR RESERVA
                     @endif
                 </span>
-                <span wire:loading wire:target="confirmarReserva">Reservando...</span>
+                <span x-show="cargando">Reservando...</span>
             </button>
         </div>
 
