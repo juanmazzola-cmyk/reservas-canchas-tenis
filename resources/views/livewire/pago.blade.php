@@ -125,7 +125,15 @@
     </a>
 
     @else
-    {{-- ── FORMULARIO DE PAGO ─────────────────────────────── --}}
+    {{-- ── FORMULARIO DE PAGO (solo cuando el pago está PENDIENTE) ─────────────────────────────── --}}
+    @if($miPagoEstado !== '' && $miPagoEstado !== 'PENDIENTE')
+    {{-- Pago ya procesado pero sin redirect aún: evitar mostrar el formulario --}}
+    <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center space-y-2">
+        <div class="text-5xl">✅</div>
+        <h2 class="text-base font-bold text-green-700">Tu pago fue recibido</h2>
+        <p class="text-xs text-green-600">Redirigiendo...</p>
+    </div>
+    @else
 
     {{-- Datos del turno --}}
     <div class="bg-[#0057a8] text-white rounded-2xl px-4 py-4">
@@ -316,5 +324,6 @@
         <span wire:loading wire:target="enviarComprobante">Verificando comprobante...</span>
     </button>
 
-    @endif
+    @endif {{-- miPagoEstado === PENDIENTE --}}
+    @endif {{-- outer @else --}}
 </div>
