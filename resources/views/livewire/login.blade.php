@@ -41,6 +41,11 @@
             </div>
             @endif
 
+            <script>
+                if (navigator.credentials && navigator.credentials.preventSilentAccess) {
+                    navigator.credentials.preventSilentAccess();
+                }
+            </script>
             <form method="POST" action="{{ route('login.post') }}"
                   x-data="{ puedeEnviar: false }"
                   @submit.prevent="if(puedeEnviar) { puedeEnviar = false; $el.submit() }">
