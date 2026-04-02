@@ -31,10 +31,6 @@
                    class="inline-block mt-3 bg-amber-900 text-white font-bold text-sm px-6 py-2.5 rounded-full hover:bg-amber-800 transition">
                     Registrarme ahora
                 </a>
-                <button @click="localStorage.setItem('ya_ingrese', '1'); visible = false"
-                    class="block mx-auto mt-2 text-amber-700 text-xs hover:text-amber-900 underline">
-                    Ya tengo cuenta, quiero ingresar
-                </button>
             </div>
         </div>
 
