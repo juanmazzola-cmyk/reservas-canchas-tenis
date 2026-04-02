@@ -46,9 +46,7 @@
                     navigator.credentials.preventSilentAccess();
                 }
             </script>
-            <form method="POST" action="{{ route('login.post') }}"
-                  x-data="{ puedeEnviar: false }"
-                  @submit.prevent="if(puedeEnviar) { puedeEnviar = false; $el.submit() }">
+            <form id="login-form" method="POST" action="{{ route('login.post') }}">
             @csrf
 
             <div class="mb-4">
@@ -89,8 +87,8 @@
             </div>
 
             <button
-                type="submit"
-                @click="puedeEnviar = true"
+                type="button"
+                onclick="document.getElementById('login-form').submit()"
                 class="w-full bg-[#16a34a] hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors text-sm tracking-wide">
                 INGRESAR
             </button>
