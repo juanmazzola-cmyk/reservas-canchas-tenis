@@ -277,6 +277,20 @@
                     </svg>
                     <span>Stats</span>
                 </a>
+                {{-- Comprobantes --}}
+                @php $hayEnRevision = \App\Models\Pago::where('estado', 'PENDING_REVIEW')->whereNotNull('comprobante')->exists(); @endphp
+                <a href="{{ route('admin.comprobantes') }}" wire:navigate
+                   class="flex flex-col items-center gap-0.5 text-xs px-2 py-1 rounded transition-colors {{ request()->routeIs('admin.comprobantes') ? 'text-yellow-300 font-semibold' : 'text-gray-900 opacity-80 hover:opacity-100' }}">
+                    <div class="relative">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        @if($hayEnRevision)
+                            <span class="absolute -top-1.5 -right-1.5 w-3 h-3 bg-amber-400 rounded-full border border-white"></span>
+                        @endif
+                    </div>
+                    <span>Recibos</span>
+                </a>
                 {{-- Perfil --}}
                 <a href="{{ route('perfil') }}" wire:navigate
                    class="flex flex-col items-center gap-0.5 text-xs px-2 py-1 rounded transition-colors {{ request()->routeIs('perfil') ? 'text-yellow-300 font-semibold' : 'text-gray-900 opacity-80 hover:opacity-100' }}">
