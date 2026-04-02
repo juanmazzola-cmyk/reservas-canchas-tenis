@@ -1,11 +1,27 @@
 <?php
 // BORRAR DESPUÉS DE USAR
-$env = parse_ini_file(__DIR__ . '/../.env');
-$pdo = new PDO(
-    "mysql:host={$env['DB_HOST']};port={$env['DB_PORT']};dbname={$env['DB_DATABASE']};charset=utf8",
-    $env['DB_USERNAME'],
-    $env['DB_PASSWORD']
-);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Leer .env manualmente
+$env = [];
+foreach (file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+    if (strpos(trim($line), '#') === 0) continue;
+    if (strpos($line, '=') === false) continue;
+    [$key, $val] = explode('=', $line, 2);
+    $env[trim($key)] = trim(trim($val), '"\'');
+}
+
+try {
+    $pdo = new PDO(
+        "mysql:host={$env['DB_HOST']};port={$env['DB_PORT']};dbname={$env['DB_DATABASE']};charset=utf8",
+        $env['DB_USERNAME'],
+        $env['DB_PASSWORD'],
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
+} catch (Exception $e) {
+    die('Error de conexión: ' . $e->getMessage());
+}
 
 $msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -31,9 +47,9 @@ $users = $pdo->query("SELECT id, nombre, apellido, rol, dni FROM users ORDER BY 
 <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fix Admin</title></head>
 <body style="font-family:sans-serif;max-width:500px;margin:40px auto;padding:20px">
 <?= $msg ?>
-<h2>DNI actuales en base de datos</h2>
+<h2>DNI actuales</h2>
 <table border="1" cellpadding="6" style="border-collapse:collapse;width:100%;margin-bottom:24px">
-<tr><th>ID</th><th>Nombre</th><th>Rol</th><th>DNI guardado</th></tr>
+<tr><th>ID</th><th>Nombre</th><th>Rol</th><th>DNI</th></tr>
 <?php foreach ($users as $u): ?>
 <tr>
     <td><?= $u['id'] ?></td>
@@ -52,6 +68,6 @@ $users = $pdo->query("SELECT id, nombre, apellido, rol, dni FROM users ORDER BY 
     </select><br>
     <input type="text" name="dni" style="width:100%;padding:8px;margin:6px 0" placeholder="Nuevo DNI (vacío = no cambiar)"><br>
     <input type="password" name="password" style="width:100%;padding:8px;margin:6px 0" placeholder="Nueva contraseña (vacío = no cambiar)"><br>
-    <button type="submit" style="background:#0057a8;color:white;padding:10px 24px;border:none;border-radius:6px;cursor:pointer;font-size:16px">Actualizar</button>
+    <button type="submit" style="background:#0057a8;color:white;padding:10px 24px;border:none;border-radius:6px;font-size:16px">Actualizar</button>
 </form>
 </body></html>
