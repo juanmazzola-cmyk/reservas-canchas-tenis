@@ -152,10 +152,15 @@
             @foreach($jugadores as $j)
             <div class="flex items-center justify-between py-1.5">
                 <span class="text-xs text-gray-800 font-medium">{{ $j['nombre'] }}</span>
-                <span class="text-[10px] px-2 py-0.5 rounded-full font-medium
-                    {{ $j['es_socio'] ? 'bg-green-100 text-green-700' : ($j['es_invitado'] ?? false ? 'bg-amber-100 text-amber-700' : 'bg-orange-100 text-orange-700') }}">
-                    {{ $j['es_socio'] ? 'Socio' : ($j['es_invitado'] ?? false ? 'Invitado' : 'No socio') }}
-                </span>
+                <div class="flex items-center gap-1.5">
+                    @if(!$j['es_socio'] && ($j['ya_pago'] ?? false))
+                        <span class="text-[10px] px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">pagó</span>
+                    @endif
+                    <span class="text-[10px] px-2 py-0.5 rounded-full font-medium
+                        {{ $j['es_socio'] ? 'bg-green-100 text-green-700' : ($j['es_invitado'] ?? false ? 'bg-amber-100 text-amber-700' : 'bg-orange-100 text-orange-700') }}">
+                        {{ $j['es_socio'] ? 'Socio' : ($j['es_invitado'] ?? false ? 'Invitado' : 'No socio') }}
+                    </span>
+                </div>
             </div>
             @endforeach
         </div>
@@ -166,9 +171,13 @@
     <div class="bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3">
         <div class="flex items-center justify-between">
             <p class="text-xs text-orange-600 font-semibold uppercase">Total a abonar</p>
-            <p class="text-2xl font-bold text-orange-600">${{ number_format($totalReserva, 0, ',', '.') }}</p>
+            <p class="text-2xl font-bold text-orange-600">${{ number_format($montoRestante, 0, ',', '.') }}</p>
         </div>
-        @if(!$hayInvitados && $totalReserva > $totalAPagar)
+        @if($montoYaPagado > 0)
+        <p class="text-xs text-orange-500 mt-1">
+            Ya se abonaron <strong>${{ number_format($montoYaPagado, 0, ',', '.') }}</strong> de ${{ number_format($totalReserva, 0, ',', '.') }}.
+        </p>
+        @elseif(!$hayInvitados && $totalReserva > $totalAPagar)
         <p class="text-xs text-orange-500 mt-1.5">
             También podés abonar solo tu parte: <strong>${{ number_format($totalAPagar, 0, ',', '.') }}</strong>. Tu rival deberá abonar la suya desde Mis Turnos.
         </p>

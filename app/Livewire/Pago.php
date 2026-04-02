@@ -18,8 +18,10 @@ class Pago extends Component
 
     public int   $reservaId    = 0;
     public int   $miPagoId     = 0;
-    public float $totalAPagar  = 0;  // monto individual del usuario (su parte)
-    public float $totalReserva = 0;  // total de toda la reserva (todos los no-socios)
+    public float $totalAPagar    = 0;  // monto individual del usuario (su parte)
+    public float $totalReserva  = 0;  // total de toda la reserva (todos los no-socios)
+    public float $montoYaPagado = 0;  // suma de pagos ya AUTHORIZED
+    public float $montoRestante = 0;  // totalReserva - montoYaPagado
 
     public array  $jugadores    = [];
     public int    $cantNoSocios = 0;
@@ -79,6 +81,9 @@ class Pago extends Component
 
         $config = Configuracion::getConfig();
 
+        // Pagos de la reserva indexados por user_id
+        $pagosReserva = PagoModel::where('reserva_id', $r->id)->get()->keyBy('user_id');
+
         // Armar lista de jugadores para mostrar
         $this->jugadores = User::whereIn('id', $r->jugadores_ids ?? [])
             ->get()
@@ -86,6 +91,7 @@ class Pago extends Component
                 'nombre'      => $u->nombre . ' ' . $u->apellido,
                 'es_socio'    => $u->es_socio,
                 'es_invitado' => false,
+                'ya_pago'     => isset($pagosReserva[$u->id]) && in_array($pagosReserva[$u->id]->estado, ['AUTHORIZED', 'PENDING_REVIEW']),
             ])
             ->toArray();
 
@@ -94,6 +100,7 @@ class Pago extends Component
                 'nombre'      => $inv['apellido'],
                 'es_socio'    => false,
                 'es_invitado' => true,
+                'ya_pago'     => false,
             ];
         }
 
@@ -117,7 +124,9 @@ class Pago extends Component
         }
 
         // Total completo de la reserva (suma de todos los pagos)
-        $this->totalReserva = (float) PagoModel::where('reserva_id', $r->id)->sum('monto');
+        $this->totalReserva  = (float) PagoModel::where('reserva_id', $r->id)->sum('monto');
+        $this->montoYaPagado = (float) PagoModel::where('reserva_id', $r->id)->where('estado', 'AUTHORIZED')->sum('monto');
+        $this->montoRestante = max(0, $this->totalReserva - $this->montoYaPagado);
 
         // Verificar si TODOS los pagos de la reserva están autorizados
         $this->todosAutorizados = $r->estado === 'AUTHORIZED';
