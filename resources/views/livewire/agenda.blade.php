@@ -178,7 +178,7 @@
                                     @php $puedeVerDetalle = $celda['es_mia'] || auth()->user()->rol === 'admin'; @endphp
                                     @if($puedeVerDetalle)
                                     @php
-                                        $esParcial = ($celda['estado'] ?? '') === 'PARTIAL_PAYMENT' && $celda['es_mia'];
+                                        $esParcial = in_array($celda['estado'] ?? '', ['PARTIAL_PAYMENT', 'PENDING']) && $celda['es_mia'];
                                     @endphp
                                     <button wire:click="seleccionarTurno('{{ $hora }}', {{ $cancha['id'] }})"
                                         class="w-full rounded border text-left px-1.5 py-1 text-[10px] leading-snug transition
@@ -201,6 +201,7 @@
                                             $celda['esta_pagado']              => null,
                                             $estadoCelda === 'AUTHORIZED'      => null,
                                             $estadoCelda === 'PARTIAL_PAYMENT' => ['txt' => 'Pago parcial', 'cls' => 'text-amber-600'],
+                                            $estadoCelda === 'PENDING'         => ['txt' => 'Pago pend.',  'cls' => 'text-amber-600'],
                                             $estadoCelda === 'PENDING_REVIEW'  => ['txt' => 'En revisión',  'cls' => 'text-purple-600'],
                                             default                            => ['txt' => 'Falta pago',   'cls' => 'text-red-500'],
                                         };
