@@ -1,10 +1,16 @@
 <div class="w-full max-w-sm mx-auto" x-data="{ showPass: false }">
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
         <!-- Header -->
-        <div class="bg-[#0057a8] text-white text-center py-8 px-6">
-            <div class="text-5xl mb-2">🎾</div>
-            <h1 class="text-2xl font-bold">Crear cuenta</h1>
-            <p class="text-sm opacity-80 mt-1">Liga Padres Tenis</p>
+        <div class="bg-[#0057a8] text-white px-4 pt-3 pb-4">
+            <div class="mb-2">
+                <a href="{{ route('login') }}" class="inline-flex items-center gap-1 text-white/70 hover:text-white text-sm transition">
+                    ← Volver
+                </a>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl mb-1">🎾</div>
+                <h1 class="text-xl font-bold">Crear cuenta</h1>
+            </div>
         </div>
 
         <!-- Form -->
@@ -124,12 +130,6 @@
                 </button>
             </form>
 
-            <div class="mt-5 text-center">
-                <a href="{{ route('login') }}"
-                   class="inline-flex items-center gap-2 text-gray-500 border border-gray-300 rounded-xl px-4 py-2.5 text-sm hover:bg-gray-50 transition">
-                    ← Volver al inicio
-                </a>
-            </div>
         </div>
     </div>
 </div>
