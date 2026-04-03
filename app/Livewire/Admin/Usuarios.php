@@ -18,6 +18,7 @@ class Usuarios extends Component
     public ?int $editarId = null;
     public string $editNombre = '';
     public string $editApellido = '';
+    public string $editDni = '';
     public string $editEmail = '';
     public string $editTelefono = '';
     public string $editRol = 'usuario';
@@ -61,6 +62,7 @@ class Usuarios extends Component
         $this->editarId     = $id;
         $this->editNombre   = $user->nombre;
         $this->editApellido = $user->apellido;
+        $this->editDni      = $user->dni ?? '';
         $this->editEmail    = $user->email;
         $this->editTelefono = $user->telefono ?? '';
         $this->editRol      = $user->rol;
@@ -74,6 +76,7 @@ class Usuarios extends Component
         $rules = [
             'editNombre'   => 'required|string|min:2|max:100',
             'editApellido' => 'required|string|min:2|max:100',
+            'editDni'      => ['nullable', 'string', 'max:20', Rule::unique('users', 'dni')->ignore($this->editarId)],
             'editEmail'    => ['required', 'email', Rule::unique('users', 'email')->ignore($this->editarId)],
             'editTelefono' => 'nullable|string|max:20',
             'editRol'      => 'required|in:admin,control,usuario',
@@ -97,6 +100,7 @@ class Usuarios extends Component
         $data = [
             'nombre'   => ucfirst(strtolower(trim($this->editNombre))),
             'apellido' => ucfirst(strtolower(trim($this->editApellido))),
+            'dni'      => trim($this->editDni) ?: null,
             'email'    => strtolower(trim($this->editEmail)),
             'telefono' => trim($this->editTelefono),
             'rol'      => $this->editRol,

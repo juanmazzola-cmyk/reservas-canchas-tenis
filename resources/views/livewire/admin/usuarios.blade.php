@@ -31,6 +31,11 @@
             <div class="flex-1 min-w-0">
                 <p class="font-semibold text-gray-800 text-sm">{{ $u['apellido'] }}, {{ $u['nombre'] }}</p>
                 <p class="text-xs text-gray-500 truncate">{{ $u['email'] }}</p>
+                @if($u['dni'])
+                    <p class="text-xs text-gray-400">DNI: {{ $u['dni'] }}</p>
+                @else
+                    <p class="text-xs text-red-400 font-medium">Sin DNI</p>
+                @endif
                 @if($u['telefono'])
                     <div class="flex items-center gap-1.5 mt-0.5">
                         <p class="text-xs text-gray-400">{{ $u['telefono'] }}</p>
@@ -94,6 +99,12 @@
                         <input type="text" wire:model="editApellido" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editApellido') border-red-400 @enderror"/>
                         @error('editApellido') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">DNI</label>
+                    <input type="text" inputmode="numeric" wire:model="editDni" placeholder="Ej: 30123456" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editDni') border-red-400 @enderror"/>
+                    @error('editDni') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
