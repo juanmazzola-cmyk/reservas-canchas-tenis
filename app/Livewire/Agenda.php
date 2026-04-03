@@ -57,6 +57,13 @@ class Agenda extends Component
             ->whereDoesntHave('pagos')
             ->delete();
 
+        // Cancelar reservas PENDING con pagos pero sin comprobante subido, creadas hace más de 2 horas
+        Reserva::where('estado', 'PENDING')
+            ->whereNull('comprobante')
+            ->whereHas('pagos')
+            ->where('created_at', '<', Carbon::now()->subHours(2))
+            ->delete();
+
         // Cancelar automáticamente reservas PENDING/PARTIAL_PAYMENT que llegaron a 15 min del turno sin completar el pago
         $pendientes = Reserva::whereIn('estado', ['PENDING', 'PARTIAL_PAYMENT'])
             ->whereHas('pagos')
