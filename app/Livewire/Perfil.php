@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use App\Models\Reserva;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -21,6 +22,11 @@ class Perfil extends Component
 
     public function mount(): void
     {
+        // Cancelar DRAFTs del usuario actual (navegó fuera de la pantalla de pago)
+        Reserva::where('estado', 'DRAFT')
+            ->where('creador_id', Auth::id())
+            ->delete();
+
         $user = Auth::user();
         $this->nombre   = $user->nombre;
         $this->apellido = $user->apellido;

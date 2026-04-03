@@ -57,7 +57,12 @@ class Agenda extends Component
             ->whereDoesntHave('pagos')
             ->delete();
 
-        // Limpiar slots DRAFT (reservas temporales sin comprobante) que tengan más de 30 minutos
+        // Cancelar DRAFTs del usuario actual (navegó fuera de la pantalla de pago)
+        Reserva::where('estado', 'DRAFT')
+            ->where('creador_id', Auth::id())
+            ->delete();
+
+        // Limpiar slots DRAFT viejos de cualquier usuario (más de 30 minutos)
         Reserva::where('estado', 'DRAFT')
             ->where('created_at', '<', Carbon::now()->subMinutes(30))
             ->delete();

@@ -32,6 +32,11 @@ class MisTurnos extends Component
 
     public function mount(): void
     {
+        // Cancelar DRAFTs del usuario actual (navegó fuera de la pantalla de pago)
+        Reserva::where('estado', 'DRAFT')
+            ->where('creador_id', Auth::id())
+            ->delete();
+
         $this->cargarDias();
         $this->cargarHorarios();
         $this->cargarCanchas();
