@@ -371,10 +371,10 @@
 
     @livewireScripts
     <script>
-        // Keep-alive: ping cada 4 minutos para mantener la sesión activa
+        // Keep-alive: ping cada 2 minutos para mantener la sesión activa
         setInterval(function() {
             fetch('/ping', { credentials: 'same-origin' }).catch(function(){});
-        }, 4 * 60 * 1000);
+        }, 2 * 60 * 1000);
 
         document.addEventListener('limpiarBannerPassword', e => {
             sessionStorage.removeItem('pwd_banner_ok_' + e.detail.userId);
