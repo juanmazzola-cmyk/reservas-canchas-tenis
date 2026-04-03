@@ -92,12 +92,12 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Nombre *</label>
-                        <input type="text" wire:model="editNombre" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editNombre') border-red-400 @enderror"/>
+                        <input type="text" wire:model="editNombre" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editNombre') border-red-400 @enderror"/>
                         @error('editNombre') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Apellido *</label>
-                        <input type="text" wire:model="editApellido" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editApellido') border-red-400 @enderror"/>
+                        <input type="text" wire:model="editApellido" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editApellido') border-red-400 @enderror"/>
                         @error('editApellido') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -110,7 +110,7 @@
 
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Email *</label>
-                    <input type="email" wire:model="editEmail" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editEmail') border-red-400 @enderror"/>
+                    <input type="email" wire:model="editEmail" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editEmail') border-red-400 @enderror"/>
                     @error('editEmail') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
@@ -135,7 +135,7 @@
 
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Nueva contraseña (dejar vacío para no cambiar)</label>
-                    <input type="password" wire:model="editPassword" placeholder="Nueva contraseña" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editPassword') border-red-400 @enderror"/>
+                    <input type="password" wire:model="editPassword" placeholder="Nueva contraseña" autocomplete="new-password" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editPassword') border-red-400 @enderror"/>
                     @error('editPassword') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
