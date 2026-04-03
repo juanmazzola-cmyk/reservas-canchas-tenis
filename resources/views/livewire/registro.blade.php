@@ -1,15 +1,15 @@
 <div class="w-full max-w-sm mx-auto" x-data="{ showPass: false }">
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
         <!-- Header -->
-        <div class="bg-[#0057a8] text-white px-4 pt-3 pb-4">
-            <div class="mb-2">
+        <div class="bg-[#0057a8] text-white px-4 pt-2 pb-3">
+            <div class="mb-1">
                 <a href="{{ route('login') }}" class="inline-flex items-center gap-1 text-white/70 hover:text-white text-sm transition">
                     ← Volver
                 </a>
             </div>
-            <div class="text-center">
-                <div class="text-3xl mb-1">🎾</div>
-                <h1 class="text-xl font-bold">Crear cuenta</h1>
+            <div class="flex items-center justify-center gap-2">
+                <span class="text-2xl">🎾</span>
+                <h1 class="text-lg font-bold">Crear cuenta</h1>
             </div>
         </div>
 
