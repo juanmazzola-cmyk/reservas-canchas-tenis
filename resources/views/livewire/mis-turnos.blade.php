@@ -196,10 +196,11 @@
 
             {{-- Botones --}}
             <div class="p-4 flex gap-3">
-                <button wire:click="$set('modalReprogramar', false)" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm">
+                <button type="button" wire:click="$set('modalReprogramar', false)" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm">
                     Cancelar
                 </button>
                 <button
+                    type="button"
                     wire:click="reprogramarReserva"
                     @if(!$reprogramarHora) disabled @endif
                     class="flex-1 bg-[#0057a8] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
@@ -218,8 +219,8 @@
             <h3 class="font-bold text-lg mb-2">¿Cancelar turno?</h3>
             <p class="text-sm text-gray-600 mb-4">Esta acción no se puede deshacer.</p>
             <div class="flex gap-3">
-                <button wire:click="$set('modalCancelar', false)" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm">Volver</button>
-                <button wire:click="cancelarReserva" class="flex-1 bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-red-600">Cancelar turno</button>
+                <button type="button" wire:click="$set('modalCancelar', false)" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm">Volver</button>
+                <button type="button" wire:click="cancelarReserva" class="flex-1 bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-red-600">Cancelar turno</button>
             </div>
         </div>
     </div>

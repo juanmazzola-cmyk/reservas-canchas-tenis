@@ -141,8 +141,8 @@
             </div>
 
             <div class="flex gap-3 px-6 py-4 border-t border-gray-100 flex-shrink-0">
-                <button wire:click="$set('modalEditar', false)" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm hover:bg-gray-50">Cancelar</button>
-                <button wire:click="guardarEdicion" wire:loading.attr="disabled" wire:target="guardarEdicion" class="flex-1 bg-[#0057a8] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 disabled:opacity-60">
+                <button type="button" wire:click="$set('modalEditar', false)" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm hover:bg-gray-50">Cancelar</button>
+                <button type="button" wire:click="guardarEdicion" wire:loading.attr="disabled" wire:target="guardarEdicion" class="flex-1 bg-[#0057a8] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 disabled:opacity-60">
                     <span wire:loading.remove wire:target="guardarEdicion">Guardar</span>
                     <span wire:loading wire:target="guardarEdicion">Guardando...</span>
                 </button>
@@ -158,8 +158,8 @@
             <h3 class="font-bold text-lg mb-2">¿Eliminar usuario?</h3>
             <p class="text-sm text-gray-600 mb-4">Esta acción no se puede deshacer.</p>
             <div class="flex gap-3">
-                <button wire:click="$set('modalEliminar', false)" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm">Cancelar</button>
-                <button wire:click="eliminarUsuario" class="flex-1 bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-red-600">Eliminar</button>
+                <button type="button" wire:click="$set('modalEliminar', false)" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm">Cancelar</button>
+                <button type="button" wire:click="eliminarUsuario" class="flex-1 bg-red-500 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-red-600">Eliminar</button>
             </div>
         </div>
     </div>

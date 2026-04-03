@@ -302,7 +302,7 @@
                 <h3 class="font-bold text-base leading-tight">Reservar turno</h3>
                 <p class="text-xs opacity-75">{{ $modalDia }} · {{ $modalHora }} · Cancha {{ $modalCancha }}</p>
             </div>
-            <button wire:click="$set('modalReserva', false)" class="text-white/80 hover:text-white text-sm font-medium border border-white/40 rounded-lg px-3 py-1">← Volver</button>
+            <button type="button" wire:click="$set('modalReserva', false)" class="text-white/80 hover:text-white text-sm font-medium border border-white/40 rounded-lg px-3 py-1">← Volver</button>
         </div>
 
         {{-- Contenido scrolleable --}}
@@ -454,6 +454,7 @@
         <div class="flex-shrink-0 px-4 pt-3 pb-20 border-t border-gray-100 bg-white"
              x-data="{ cargando: false }">
             <button
+                type="button"
                 wire:click="confirmarReserva"
                 @click="cargando = true"
                 :disabled="cargando || {{ $puedeConfirmar ? 'false' : 'true' }}"
@@ -507,11 +508,11 @@
                 @endforeach
             </div>
             <div class="flex gap-3">
-                <button wire:click="$set('modalBloqueo', false)"
+                <button type="button" wire:click="$set('modalBloqueo', false)"
                     class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm">
                     Cancelar
                 </button>
-                <button wire:click="confirmarBloqueo"
+                <button type="button" wire:click="confirmarBloqueo"
                     @if(!$bloqueoMotivoId) disabled @endif
                     class="flex-1 bg-gray-800 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed">
                     🔒 Bloquear
@@ -611,7 +612,7 @@
                     </button>
                 </div>
                 @endif
-                <button wire:click="$set('modalDetalle', false)"
+                <button type="button" wire:click="$set('modalDetalle', false)"
                     class="w-full mt-2 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm hover:bg-gray-50">
                     Cerrar
                 </button>
