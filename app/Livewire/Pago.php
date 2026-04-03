@@ -176,6 +176,15 @@ class Pago extends Component
         $this->pagoDemas    = false;
     }
 
+    public function dejarQuePagueRival(): void
+    {
+        $r = Reserva::find($this->reservaId);
+        if ($r && $r->estado === 'DRAFT') {
+            $r->update(['estado' => 'PENDING']);
+        }
+        $this->redirect(route('agenda'));
+    }
+
     public function cancelarYVolver(): void
     {
         $r = Reserva::find($this->reservaId);

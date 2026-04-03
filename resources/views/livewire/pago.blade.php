@@ -101,14 +101,14 @@
             <h2 class="text-base font-bold text-blue-800">¿Cómo querés proceder?</h2>
             <p class="text-xs text-blue-600 mt-1">Vos sos socio/a. El pago de tu/s rival/es no-soci{{ $cantNoSocios > 1 ? 'os' : 'o' }} está pendiente.</p>
         </div>
-        <button wire:click="ofrecerPagar"
+        <button type="button" wire:click="ofrecerPagar"
                 class="w-full bg-[#0057a8] text-white py-3 rounded-xl font-bold text-sm">
             Pagar yo la reserva (${{ number_format($totalAPagar, 0, ',', '.') }})
         </button>
-        <a href="{{ route('agenda') }}"
-           class="block text-center border border-gray-300 text-gray-600 py-3 rounded-xl text-sm font-medium hover:bg-gray-50">
+        <button type="button" wire:click="dejarQuePagueRival"
+                class="w-full border border-gray-300 text-gray-600 py-3 rounded-xl text-sm font-medium hover:bg-gray-50">
             Dejar que pague el/la rival
-        </a>
+        </button>
     </div>
 
     @else
