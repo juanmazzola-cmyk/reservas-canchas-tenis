@@ -14,6 +14,7 @@ Route::get('/icons/{filename}', function ($filename) {
 Route::get('/login', \App\Livewire\Login::class)->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware('guest');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/ping', fn() => response()->json(['ok' => true]))->middleware('web')->name('ping');
 
 Route::get('/registro', \App\Livewire\Registro::class)->name('registro')->middleware('guest');
 Route::get('/olvide-password', \App\Livewire\OlvidePassword::class)->name('olvide-password')->middleware('guest');
