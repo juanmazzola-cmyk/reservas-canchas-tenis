@@ -125,10 +125,10 @@
             </form>
 
             <div class="mt-5 text-center">
-                <p class="text-xs text-gray-600">
-                    ¿Ya tenés cuenta?
-                    <a href="{{ route('login') }}" class="text-[#0057a8] font-medium hover:underline">Ingresá acá</a>
-                </p>
+                <a href="{{ route('login') }}"
+                   class="inline-flex items-center gap-2 text-gray-500 border border-gray-300 rounded-xl px-4 py-2.5 text-sm hover:bg-gray-50 transition">
+                    ← Volver al inicio
+                </a>
             </div>
         </div>
     </div>
