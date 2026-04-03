@@ -1,5 +1,5 @@
-<div class="w-full max-w-sm mx-auto" x-data="{ showPass: false }">
-    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+<div class="w-full max-w-sm mx-auto min-h-screen sm:min-h-0 sm:my-8" x-data="{ showPass: false }">
+    <div class="bg-white sm:rounded-2xl sm:shadow-lg overflow-hidden">
         <!-- Header -->
         <div class="bg-[#0057a8] text-white px-4 pt-2 pb-3">
             <div class="mb-1">
