@@ -1,10 +1,22 @@
 <div x-data="{
     hayMas: false,
     stickyTop: 68,
+    bodyMaxH: 'calc(100vh - 300px)',
     init() {
         let h = document.getElementById('app-header');
         this.stickyTop = h ? h.offsetHeight : 68;
-        this.$nextTick(() => this.chequear());
+        this.$nextTick(() => {
+            this.chequear();
+            this.calcBodyH();
+        });
+    },
+    calcBodyH() {
+        let appH  = (document.getElementById('app-header')  || {offsetHeight: 68}).offsetHeight;
+        let stickyEl = this.$el.querySelector('#agenda-sticky');
+        let stickyH  = stickyEl ? stickyEl.offsetHeight : 130;
+        let mainPt   = 16;  // pt-4
+        let bottomNav = 80; // pb-20
+        this.bodyMaxH = 'max-height:calc(100vh - ' + (appH + stickyH + mainPt + bottomNav) + 'px)';
     },
     chequear() {
         let el = document.getElementById('agenda-body');
@@ -28,7 +40,7 @@
     {{-- ═══════════════════════════════════════════════════
          BLOQUE STICKY: anuncio + días + hint + cabecera tabla
     ══════════════════════════════════════════════════════ --}}
-    <div class="sticky z-30 bg-gray-100 -mx-4 px-4 -mt-4 pt-1" :style="'top:' + stickyTop + 'px'">
+    <div id="agenda-sticky" class="sticky z-30 bg-gray-100 -mx-4 px-4 -mt-4 pt-1" :style="'top:' + stickyTop + 'px'">
 
         {{-- Anuncio global (si está activo) --}}
         @if($hayAnuncio)
@@ -127,7 +139,7 @@
             id="agenda-body"
             @scroll="chequear(); syncHeader()"
             class="overflow-auto -mx-4"
-            style="max-height: calc(100vh - 300px)"
+            :style="bodyMaxH"
         >
             <table class="text-xs border-collapse" style="min-width:{{ $minW }}; table-layout:fixed">
                 <colgroup>
