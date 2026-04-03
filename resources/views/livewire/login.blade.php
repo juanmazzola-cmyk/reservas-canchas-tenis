@@ -1,15 +1,15 @@
-<div class="w-full max-w-sm flex flex-col min-h-screen sm:min-h-0 sm:my-8 sm:rounded-2xl sm:shadow-xl sm:border sm:border-gray-200 sm:overflow-hidden">
+<div class="w-full max-w-sm flex flex-col h-screen sm:h-auto sm:min-h-0 sm:my-8 sm:rounded-2xl sm:shadow-xl sm:border sm:border-gray-200 sm:overflow-hidden">
     <div class="flex flex-col flex-1">
 
         <!-- Header azul -->
-        <div class="bg-[#0057a8] text-white text-center py-3 sm:py-5 px-6">
-            <div class="text-3xl sm:text-3xl mb-0.5">🎾</div>
-            <h1 class="text-xl sm:text-2xl font-bold">{{ $clubName }}</h1>
-            <p class="text-xs opacity-80 hidden sm:block mt-1">Reserva tus turnos fácil y rápido</p>
+        <div class="bg-[#0057a8] text-white text-center py-6 sm:py-5 px-6">
+            <div class="text-4xl sm:text-3xl mb-1">🎾</div>
+            <h1 class="text-2xl font-bold">{{ $clubName }}</h1>
+            <p class="text-sm opacity-80 mt-1">Reserva tus turnos fácil y rápido</p>
         </div>
 
         <!-- Fotos de canchas -->
-        <div class="flex overflow-hidden h-24 sm:h-32">
+        <div class="flex overflow-hidden flex-1 sm:flex-none sm:h-32">
             <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=200&h=240&fit=crop&q=80"
                  alt="Cancha de polvo de ladrillo"
                  class="w-1/3 object-cover">
@@ -22,16 +22,16 @@
         </div>
 
         <!-- Banner primera vez -->
-        <div class="mx-4 mt-2 bg-amber-400 rounded-2xl px-4 py-3 text-center shadow-md">
-            <p class="text-amber-900 font-bold text-sm leading-tight">¿Primera vez que ingresás?</p>
+        <div class="mx-4 mt-4 bg-amber-400 rounded-2xl p-4 text-center shadow-md">
+            <p class="text-amber-900 font-bold text-base leading-tight">¿Primera vez que ingresás?</p>
             <a href="{{ route('registro') }}"
-               class="inline-block mt-2 bg-amber-900 text-white font-bold text-sm px-6 py-2 rounded-full hover:bg-amber-800 transition">
+               class="inline-block mt-3 bg-amber-900 text-white font-bold text-sm px-6 py-2.5 rounded-full hover:bg-amber-800 transition">
                 Registrarme ahora
             </a>
         </div>
 
         <!-- Form -->
-        <div class="px-5 pt-3 pb-4 sm:p-5 flex-shrink-0">
+        <div class="p-6 sm:p-5 flex-shrink-0">
             @if($errors->has('dni'))
             <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2.5 mb-3 text-sm">
                 {{ $errors->first('dni') }}
@@ -46,7 +46,7 @@
             <form id="login-form" method="POST" action="{{ route('login.post') }}">
             @csrf
 
-            <div class="mb-3">
+            <div class="mb-4">
                 <label for="dni" class="block text-sm font-medium text-gray-700 mb-1">DNI</label>
                 <input
                     id="dni"
@@ -59,7 +59,7 @@
                 />
             </div>
 
-            <div class="mb-4">
+            <div class="mb-5">
                 <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
                 <div class="relative" x-data="{ show: false }">
                     <input
@@ -86,16 +86,16 @@
             <button
                 type="button"
                 onclick="document.getElementById('login-form').submit()"
-                class="w-full bg-[#16a34a] hover:bg-green-700 text-white font-bold py-2.5 rounded-lg transition-colors text-sm tracking-wide">
+                class="w-full bg-[#16a34a] hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors text-sm tracking-wide">
                 INGRESAR
             </button>
 
             </form>
 
-            <div class="mt-3 text-center">
+            <div class="mt-5 text-center">
                 <a href="{{ route('olvide-password') }}" class="text-[#0057a8] font-medium text-base hover:underline">Olvidé mi contraseña</a>
             </div>
-            <p class="text-center text-xs text-gray-400 mt-1">{{ $clubName }} © {{ date('Y') }}</p>
+            <p class="text-center text-xs text-gray-400 mt-2">{{ $clubName }} © {{ date('Y') }}</p>
         </div>
     </div>
 </div>
