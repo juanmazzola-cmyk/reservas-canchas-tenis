@@ -300,22 +300,28 @@ class MisTurnos extends Component
             }
         }
 
-        // Horas conflictivas del propio usuario en ese día (otras reservas, excluyendo la que se reprograma)
-        $reservasUsuario = Reserva::where('dia', $this->reprogramarDia)
-            ->where('id', '!=', $this->reprogramarReservaId)
-            ->whereJsonContains('jugadores_ids', Auth::id())
-            ->pluck('hora')
-            ->toArray();
+        // Jugadores involucrados en la reserva que se reprograma (incluye al usuario actual)
+        $reservaActual = Reserva::find($this->reprogramarReservaId);
+        $jugadoresIds = $reservaActual ? ($reservaActual->jugadores_ids ?? []) : [Auth::id()];
 
+        // Horas conflictivas de todos los jugadores de la reserva
         $horasConflicto = [];
-        foreach ($reservasUsuario as $horaReservada) {
-            $horasConflicto[] = $horaReservada;
-            $idx = array_search($horaReservada, $this->horarios);
-            if ($idx !== false && $idx > 0) {
-                $horasConflicto[] = $this->horarios[$idx - 1];
-            }
-            if ($idx !== false && $idx < count($this->horarios) - 1) {
-                $horasConflicto[] = $this->horarios[$idx + 1];
+        foreach ($jugadoresIds as $jugadorId) {
+            $horasJugador = Reserva::where('dia', $this->reprogramarDia)
+                ->where('id', '!=', $this->reprogramarReservaId)
+                ->whereJsonContains('jugadores_ids', $jugadorId)
+                ->pluck('hora')
+                ->toArray();
+
+            foreach ($horasJugador as $horaReservada) {
+                $horasConflicto[] = $horaReservada;
+                $idx = array_search($horaReservada, $this->horarios);
+                if ($idx !== false && $idx > 0) {
+                    $horasConflicto[] = $this->horarios[$idx - 1];
+                }
+                if ($idx !== false && $idx < count($this->horarios) - 1) {
+                    $horasConflicto[] = $this->horarios[$idx + 1];
+                }
             }
         }
 
@@ -351,6 +357,25 @@ class MisTurnos extends Component
             $this->dispatch('toast', message: 'Ese turno ya fue tomado. Elegí otro.', type: 'error');
             $this->actualizarHorasDisponibles();
             return;
+        }
+
+        // Verificar que ningún jugador de la reserva tenga conflicto en el nuevo horario
+        $idxSeleccionado = array_search($this->reprogramarHora, $this->horarios);
+        foreach ($reserva->jugadores_ids ?? [] as $jugadorId) {
+            $horasJugador = Reserva::where('dia', $this->reprogramarDia)
+                ->where('id', '!=', $this->reprogramarReservaId)
+                ->whereJsonContains('jugadores_ids', $jugadorId)
+                ->pluck('hora')
+                ->toArray();
+
+            foreach ($horasJugador as $horaOcupada) {
+                $idxOcupado = array_search($horaOcupada, $this->horarios);
+                if ($idxOcupado !== false && $idxSeleccionado !== false && abs($idxOcupado - $idxSeleccionado) <= 1) {
+                    $this->dispatch('toast', message: 'Uno de los jugadores ya tiene un turno en ese horario o consecutivo.', type: 'error');
+                    $this->actualizarHorasDisponibles();
+                    return;
+                }
+            }
         }
 
         $nuevoEstado = $reserva->esta_pagado ? 'AUTHORIZED' : 'PENDING';
