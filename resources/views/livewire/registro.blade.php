@@ -97,17 +97,20 @@
                 </div>
 
                 <!-- Es Socio -->
-                <div class="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3">
-                    <input
-                        type="checkbox"
-                        wire:model="es_socio"
-                        id="es_socio"
-                        class="w-4 h-4 text-[#16a34a] rounded"
-                    />
-                    <label for="es_socio" class="text-sm text-gray-700">
-                        Soy socio del club
-                        <span class="text-xs text-gray-500 block">(Tildar solamente si sos socio)</span>
-                    </label>
+                <div x-data="{ socio: @entangle('es_socio') }">
+                    <p class="text-sm font-medium text-gray-700 mb-2">¿Sos socio del club?</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div wire:click="$set('es_socio', false)" class="cursor-pointer rounded-xl px-3 py-3 text-center transition-all"
+                             :class="!socio ? 'border-2 border-orange-400 bg-orange-50 text-orange-700' : 'border border-gray-200 bg-white text-gray-500'">
+                            <div class="text-2xl mb-1">👤</div>
+                            <p class="font-bold text-sm leading-tight">No soy socio</p>
+                        </div>
+                        <div wire:click="$set('es_socio', true)" class="cursor-pointer rounded-xl px-3 py-3 text-center transition-all"
+                             :class="socio ? 'border-2 border-[#16a34a] bg-green-50 text-green-700' : 'border border-gray-200 bg-white text-gray-500'">
+                            <div class="text-2xl mb-1">⭐</div>
+                            <p class="font-bold text-sm leading-tight">Sí, soy socio</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Botón -->
