@@ -9,7 +9,7 @@
         </div>
 
         <!-- Fotos de canchas -->
-        <div class="flex overflow-hidden flex-1 sm:flex-none sm:h-32">
+        <div class="flex overflow-hidden flex-1 max-h-36 sm:max-h-none sm:flex-none sm:h-32">
             <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=200&h=240&fit=crop&q=80"
                  alt="Cancha de polvo de ladrillo"
                  class="w-1/3 object-cover">
