@@ -10,6 +10,7 @@
             type="text"
             wire:model.live.debounce.300ms="busqueda"
             placeholder="Buscar por nombre, apellido o email..."
+            autocomplete="off"
             class="w-full border border-gray-200 bg-white rounded-xl px-4 py-2.5 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"
         />
         <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -103,7 +104,7 @@
 
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">DNI</label>
-                    <input type="text" inputmode="numeric" wire:model="editDni" placeholder="Ej: 30123456" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editDni') border-red-400 @enderror"/>
+                    <input type="text" inputmode="numeric" wire:model="editDni" placeholder="Ej: 30123456" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('editDni') border-red-400 @enderror"/>
                     @error('editDni') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
@@ -141,9 +142,9 @@
 
             <div class="flex gap-3 px-6 py-4 border-t border-gray-100 flex-shrink-0">
                 <button wire:click="$set('modalEditar', false)" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm hover:bg-gray-50">Cancelar</button>
-                <button wire:click="guardarEdicion" wire:loading.attr="disabled" class="flex-1 bg-[#0057a8] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 disabled:opacity-60">
-                    <span wire:loading.remove>Guardar</span>
-                    <span wire:loading>Guardando...</span>
+                <button wire:click="guardarEdicion" wire:loading.attr="disabled" wire:target="guardarEdicion" class="flex-1 bg-[#0057a8] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 disabled:opacity-60">
+                    <span wire:loading.remove wire:target="guardarEdicion">Guardar</span>
+                    <span wire:loading wire:target="guardarEdicion">Guardando...</span>
                 </button>
             </div>
         </div>
