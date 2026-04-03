@@ -57,11 +57,9 @@ class Agenda extends Component
             ->whereDoesntHave('pagos')
             ->delete();
 
-        // Cancelar reservas PENDING con pagos pero sin comprobante subido, creadas hace más de 2 horas
-        Reserva::where('estado', 'PENDING')
-            ->whereNull('comprobante')
-            ->whereHas('pagos')
-            ->where('created_at', '<', Carbon::now()->subHours(2))
+        // Limpiar slots DRAFT (reservas temporales sin comprobante) que tengan más de 30 minutos
+        Reserva::where('estado', 'DRAFT')
+            ->where('created_at', '<', Carbon::now()->subMinutes(30))
             ->delete();
 
         // Cancelar automáticamente reservas PENDING/PARTIAL_PAYMENT que llegaron a 15 min del turno sin completar el pago
@@ -576,7 +574,7 @@ class Agenda extends Component
             'invitados'     => !empty($invitadosData) ? $invitadosData : null,
             'creador_id'    => Auth::id(),
             'esta_pagado'   => $todosSocios,
-            'estado'        => $todosSocios ? 'AUTHORIZED' : 'PENDING',
+            'estado'        => $todosSocios ? 'AUTHORIZED' : 'DRAFT',
         ]);
 
         $this->modalReserva = false;

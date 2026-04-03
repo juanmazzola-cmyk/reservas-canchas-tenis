@@ -100,6 +100,7 @@ class MisTurnos extends Component
 
         $userId = Auth::id();
         $this->reservas = Reserva::whereJsonContains('jugadores_ids', $userId)
+            ->where('estado', '!=', 'DRAFT')
             ->get()
             ->map(function ($r) use ($userId) {
                 $jugadores = User::whereIn('id', $r->jugadores_ids ?? [])->get(['id', 'nombre', 'apellido', 'es_socio']);
