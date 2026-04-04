@@ -122,6 +122,10 @@
             class="w-full border border-gray-300 text-gray-500 py-3 rounded-2xl text-sm font-medium hover:bg-gray-50 transition-colors">
         ← No, que pague el/la rival
     </button>
+    <button wire:click="$set('socioQuierePagar', false)"
+            class="w-full text-gray-400 py-2 text-sm hover:text-gray-600 transition-colors">
+        ← Volver
+    </button>
 
     @elseif($puedeOfrecerPago)
     {{-- Socio puede elegir --}}
