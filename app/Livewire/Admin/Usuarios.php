@@ -4,9 +4,12 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use App\Models\User;
+use App\Exports\UsuariosExport;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class Usuarios extends Component
 {
@@ -148,6 +151,18 @@ class Usuarios extends Component
         $this->modalEliminar = false;
         $this->cargarUsuarios();
         $this->dispatch('toast', message: 'Usuario eliminado.', type: 'success');
+    }
+
+    public function exportar(): BinaryFileResponse
+    {
+        $filtro = match($this->filtroSocio) {
+            'socio'    => 'socios',
+            'no_socio' => 'no-socios',
+            default    => 'todos',
+        };
+        $nombre = 'usuarios-' . $filtro . '-' . now()->format('Y-m-d') . '.xlsx';
+
+        return Excel::download(new UsuariosExport($this->busqueda, $this->filtroSocio), $nombre);
     }
 
     public function render()

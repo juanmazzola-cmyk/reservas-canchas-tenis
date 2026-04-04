@@ -1,13 +1,24 @@
 <div>
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-gray-800">Usuarios</h2>
-        <span class="text-sm text-gray-500">
-            {{ count($usuarios) }}
-            @if($filtroSocio === 'socio') socios
-            @elseif($filtroSocio === 'no_socio') no socios
-            @else usuarios
-            @endif
-        </span>
+        <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-500">
+                {{ count($usuarios) }}
+                @if($filtroSocio === 'socio') socios
+                @elseif($filtroSocio === 'no_socio') no socios
+                @else usuarios
+                @endif
+            </span>
+            <button type="button" wire:click="exportar"
+                wire:loading.attr="disabled" wire:target="exportar"
+                class="flex items-center gap-1.5 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg transition disabled:opacity-60">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                <span wire:loading.remove wire:target="exportar">Excel</span>
+                <span wire:loading wire:target="exportar">...</span>
+            </button>
+        </div>
     </div>
 
     {{-- Buscador --}}
