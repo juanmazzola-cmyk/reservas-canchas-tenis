@@ -67,9 +67,7 @@
             class="flex items-center gap-2 w-full bg-[#c0522b] hover:bg-[#a8441f] text-white px-4 py-2 rounded-xl mb-2 transition">
             <span class="text-lg">🏆</span>
             <span class="text-sm font-semibold">Seguimiento de torneos</span>
-            <svg class="w-4 h-4 ml-auto opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-            </svg>
+            <span class="ml-auto font-bold opacity-80 tracking-tighter">&gt;&gt;&gt;&gt;&gt;</span>
         </a>
 
         {{-- Selector de días --}}

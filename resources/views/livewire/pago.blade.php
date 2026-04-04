@@ -40,12 +40,42 @@
         <p class="text-xs text-orange-500 mt-0.5">Estás pagando en nombre de tu/s rival/es no soci{{ $cantNoSocios > 1 ? 'os' : 'o' }}</p>
     </div>
 
-    @if($config->payment_alias)
-    <div class="bg-white rounded-2xl shadow-sm px-3 py-3">
-        <p class="text-[10px] font-semibold text-gray-500 uppercase mb-1">Transferencia</p>
-        <p class="text-xs font-bold text-gray-800 tracking-wide">{{ $config->payment_alias }}</p>
+    {{-- Instrucciones --}}
+    @if($config->payment_instructions)
+    <div class="bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3">
+        <p class="text-xs font-semibold text-yellow-700 uppercase mb-1">📋 Instrucciones</p>
+        <p class="text-sm text-yellow-800 leading-relaxed">{{ $config->payment_instructions }}</p>
     </div>
     @endif
+
+    {{-- Formas de pago --}}
+    <div class="grid grid-cols-2 gap-3">
+        @if($config->payment_alias)
+        <div class="bg-white rounded-2xl shadow-sm px-3 py-3 flex flex-col justify-between">
+            <p class="text-[10px] font-semibold text-gray-500 uppercase mb-2">Transferencia</p>
+            <div class="bg-gray-50 rounded-xl px-3 py-2">
+                <p class="text-[10px] text-gray-500 mb-0.5">Alias</p>
+                <p class="text-sm font-bold text-gray-800 tracking-wide break-all">{{ $config->payment_alias }}</p>
+            </div>
+        </div>
+        @endif
+        @if($config->mp_access_token && $totalAPagar > 0)
+        <a href="{{ route('mp.iniciar', $reservaId) }}"
+           class="bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 hover:bg-[#0082c0] transition-colors no-underline">
+            <svg viewBox="0 0 48 48" class="w-10 h-10 fill-white flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm-2 28.5l-7-7 2.12-2.12L22 28.26l8.88-8.88L33 21.5l-11 11z"/>
+            </svg>
+            <p class="text-white font-bold text-xs text-center leading-tight">Pagar con<br>Mercado Pago</p>
+        </a>
+        @else
+        <div class="bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 opacity-50">
+            <svg viewBox="0 0 48 48" class="w-10 h-10 fill-white flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm-2 28.5l-7-7 2.12-2.12L22 28.26l8.88-8.88L33 21.5l-11 11z"/>
+            </svg>
+            <p class="text-white font-bold text-xs text-center leading-tight">Mercado Pago<br><span class="font-normal opacity-80 text-[10px]">Próximamente</span></p>
+        </div>
+        @endif
+    </div>
 
     {{-- Upload --}}
     <div class="bg-white rounded-2xl shadow-sm px-4 py-4">
