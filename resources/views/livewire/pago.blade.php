@@ -139,6 +139,12 @@
                 class="w-full border border-gray-300 text-gray-600 py-3 rounded-xl text-sm font-medium hover:bg-gray-50">
             Dejar que pague el/la rival
         </button>
+        <button type="button"
+                wire:click="cancelarYVolver"
+                wire:confirm="¿Cancelar la reserva? Esta acción no se puede deshacer."
+                class="w-full border border-red-300 text-red-500 py-3 rounded-xl text-sm font-medium hover:bg-red-50 transition-colors">
+            Cancelar reserva
+        </button>
     </div>
 
     @else
