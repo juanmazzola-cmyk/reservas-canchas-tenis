@@ -29,7 +29,7 @@
     </script>
     @livewireStyles
 </head>
-<body class="bg-white sm:bg-gray-100 min-h-screen flex items-stretch sm:items-center justify-center">
+<body class="bg-white sm:bg-gray-100 min-h-[100dvh] flex items-stretch sm:items-center justify-center">
     {{ $slot }}
 
     <!-- Banner de instalación PWA -->
@@ -91,8 +91,9 @@
                 }
             });
 
-            // Mostrar banner iOS solo en registro
-            if (isIos && !isInStandalone && !sessionStorage.getItem('ios-banner-closed')) {
+            // Mostrar banner iOS solo en login (no en registro, para no tapar el formulario)
+            const esRegistro = window.location.pathname.includes('/registro');
+            if (isIos && !isInStandalone && !esRegistro && !sessionStorage.getItem('ios-banner-closed')) {
                 iosBanner.style.display = 'block';
             }
 

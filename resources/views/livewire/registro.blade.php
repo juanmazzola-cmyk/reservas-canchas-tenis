@@ -1,4 +1,4 @@
-<div class="w-full max-w-sm mx-auto min-h-screen sm:min-h-0 sm:my-8" x-data="{ showPass: false }">
+<div class="w-full max-w-sm mx-auto min-h-[100dvh] sm:min-h-0 sm:my-8" x-data="{ showPass: false }">
     <div class="bg-white sm:rounded-2xl sm:shadow-lg overflow-hidden">
         <!-- Header -->
         <div class="bg-[#0057a8] text-white px-4 pt-2 pb-3">
@@ -14,7 +14,7 @@
         </div>
 
         <!-- Form -->
-        <div class="p-6">
+        <div class="p-6 pb-24 sm:pb-6">
             <form wire:submit="registrar" class="space-y-4">
 
                 <!-- Nombre -->

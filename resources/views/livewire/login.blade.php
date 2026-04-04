@@ -1,4 +1,4 @@
-<div class="w-full max-w-sm flex flex-col h-screen sm:h-auto sm:min-h-0 sm:my-8 sm:rounded-2xl sm:shadow-xl sm:border sm:border-gray-200 sm:overflow-hidden">
+<div class="w-full max-w-sm flex flex-col h-[100dvh] sm:h-auto sm:min-h-0 sm:my-8 sm:rounded-2xl sm:shadow-xl sm:border sm:border-gray-200 sm:overflow-hidden">
     <div class="flex flex-col flex-1">
 
         <!-- Header azul -->

@@ -10,8 +10,9 @@ use Illuminate\Validation\Rule;
 
 class Usuarios extends Component
 {
-    public string $busqueda = '';
-    public array $usuarios = [];
+    public string $busqueda    = '';
+    public string $filtroSocio = 'todos'; // todos | socio | no_socio
+    public array  $usuarios    = [];
 
     // Modal editar
     public bool $modalEditar = false;
@@ -39,6 +40,11 @@ class Usuarios extends Component
         $this->cargarUsuarios();
     }
 
+    public function updatedFiltroSocio(): void
+    {
+        $this->cargarUsuarios();
+    }
+
     public function cargarUsuarios(): void
     {
         $query = User::where('rol', '!=', 'admin');
@@ -49,6 +55,12 @@ class Usuarios extends Component
                   ->orWhere('apellido', 'like', '%' . $this->busqueda . '%')
                   ->orWhere('email', 'like', '%' . $this->busqueda . '%');
             });
+        }
+
+        if ($this->filtroSocio === 'socio') {
+            $query->where('es_socio', true);
+        } elseif ($this->filtroSocio === 'no_socio') {
+            $query->where('es_socio', false);
         }
 
         $this->usuarios = $query->orderBy('apellido')->get()->toArray();

@@ -1,11 +1,17 @@
 <div>
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-gray-800">Usuarios</h2>
-        <span class="text-sm text-gray-500">{{ count($usuarios) }} usuarios</span>
+        <span class="text-sm text-gray-500">
+            {{ count($usuarios) }}
+            @if($filtroSocio === 'socio') socios
+            @elseif($filtroSocio === 'no_socio') no socios
+            @else usuarios
+            @endif
+        </span>
     </div>
 
     {{-- Buscador --}}
-    <div class="relative mb-4">
+    <div class="relative mb-3">
         <input
             type="text"
             wire:model.live.debounce.300ms="busqueda"
@@ -16,6 +22,25 @@
         <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
+    </div>
+
+    {{-- Filtro socio / no socio --}}
+    <div class="flex gap-2 mb-4">
+        <button type="button" wire:click="$set('filtroSocio', 'todos')"
+            class="flex-1 py-1.5 rounded-lg text-xs font-semibold border transition
+                {{ $filtroSocio === 'todos' ? 'bg-[#0057a8] text-white border-[#0057a8]' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
+            Todos
+        </button>
+        <button type="button" wire:click="$set('filtroSocio', 'socio')"
+            class="flex-1 py-1.5 rounded-lg text-xs font-semibold border transition
+                {{ $filtroSocio === 'socio' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
+            Socios
+        </button>
+        <button type="button" wire:click="$set('filtroSocio', 'no_socio')"
+            class="flex-1 py-1.5 rounded-lg text-xs font-semibold border transition
+                {{ $filtroSocio === 'no_socio' ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
+            No socios
+        </button>
     </div>
 
     {{-- Lista --}}
