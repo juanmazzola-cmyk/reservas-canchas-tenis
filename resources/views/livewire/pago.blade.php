@@ -8,6 +8,24 @@
         <p class="text-sm opacity-90">{{ $turno_hora }} · Cancha {{ $turno_cancha }}</p>
     </div>
 
+    {{-- Jugadores de la reserva --}}
+    @if(count($jugadores) > 1)
+    <div class="bg-white rounded-2xl shadow-sm px-3 py-2">
+        <p class="text-[10px] font-semibold text-gray-500 uppercase mb-1">Jugadores</p>
+        <div class="divide-y divide-gray-100">
+            @foreach($jugadores as $j)
+            <div class="flex items-center justify-between py-1.5">
+                <span class="text-xs text-gray-800 font-medium">{{ $j['nombre'] }}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-medium
+                    {{ $j['es_socio'] ? 'bg-green-100 text-green-700' : ($j['es_invitado'] ?? false ? 'bg-amber-100 text-amber-700' : 'bg-orange-100 text-orange-700') }}">
+                    {{ $j['es_socio'] ? 'Socio' : ($j['es_invitado'] ?? false ? 'Invitado' : 'No socio') }}
+                </span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     @if($todosAutorizados)
     {{-- Reserva confirmada --}}
     <div class="bg-green-50 border border-green-200 rounded-2xl p-6 text-center space-y-2">
