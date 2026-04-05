@@ -76,24 +76,12 @@
 
     {{-- Aviso para no socios --}}
     @if(!auth()->user()->es_socio)
-    @php
-        $config = \App\Models\Configuracion::getConfig();
-        $waAdmin = $config->admin_whatsapp ? preg_replace('/\D/', '', $config->admin_whatsapp) : null;
-        $user = auth()->user();
-        $waMsg = urlencode("Hola, soy {$user->nombre} {$user->apellido} (DNI: {$user->dni}). Me hice socio del club y quiero que actualicen mi perfil.");
-    @endphp
-    <div class="bg-white rounded-2xl shadow-sm p-5">
+<div class="bg-white rounded-2xl shadow-sm p-5">
         <div class="flex items-start gap-3">
             <span class="text-2xl">⭐</span>
             <div class="flex-1">
                 <p class="font-semibold text-gray-800 text-sm">¿Te hiciste socio del club?</p>
                 <p class="text-xs text-gray-500 mt-1">Avisale al administrador para que actualice tu perfil y accedas a los beneficios de socio.</p>
-                @if($waAdmin)
-                <a href="https://wa.me/{{ $waAdmin }}?text={{ $waMsg }}" target="_blank"
-                   class="mt-3 flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-2.5 rounded-xl text-sm font-bold hover:bg-green-600 transition">
-                    Avisar al administrador por WhatsApp
-                </a>
-                @endif
             </div>
         </div>
     </div>
