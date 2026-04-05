@@ -42,12 +42,16 @@
                     @error('dni') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
-                @if(auth()->user()->es_socio && auth()->user()->nro_socio)
+                @if(auth()->user()->es_socio)
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Número de socio</label>
-                    <div class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-500 flex items-center justify-between">
-                        <span class="font-semibold text-gray-700">{{ auth()->user()->nro_socio }}</span>
-                        <span class="text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">No editable</span>
+                    <div class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm flex items-center justify-between">
+                        @if(auth()->user()->nro_socio)
+                            <span class="font-semibold text-gray-700">{{ auth()->user()->nro_socio }}</span>
+                        @else
+                            <span class="text-gray-400 italic">Sin asignar — contactá al club</span>
+                        @endif
+                        <span class="text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full ml-2 shrink-0">No editable</span>
                     </div>
                 </div>
                 @endif
