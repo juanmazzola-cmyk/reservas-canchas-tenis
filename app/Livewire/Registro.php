@@ -28,8 +28,8 @@ class Registro extends Component
             'email'     => 'required|email|unique:users,email',
             'password'  => 'required|string|min:6',
             'nro_socio' => $this->es_socio
-                ? 'required|string|regex:/^\d{1,5}$/'
-                : 'nullable|string',
+                ? ['required', 'string', 'max:5', 'regex:/^[0-9]+$/']
+                : ['nullable', 'string'],
         ];
     }
 
