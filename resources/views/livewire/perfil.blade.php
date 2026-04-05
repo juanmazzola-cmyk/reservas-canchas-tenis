@@ -49,7 +49,7 @@
                         @if(auth()->user()->nro_socio)
                             <span class="font-semibold text-gray-700">{{ auth()->user()->nro_socio }}</span>
                         @else
-                            <span class="text-gray-400 italic">Sin asignar — contactá al club</span>
+                            <span class="text-gray-400 italic">Sin asignar — contactá al administrador</span>
                         @endif
                         <span class="text-[10px] text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full ml-2 shrink-0">No editable</span>
                     </div>
