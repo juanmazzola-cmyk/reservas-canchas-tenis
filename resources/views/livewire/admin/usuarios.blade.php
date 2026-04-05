@@ -165,9 +165,21 @@
                 </div>
 
                 <div class="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3">
-                    <input type="checkbox" wire:model="editEsSocio" id="editEsSocio" class="w-4 h-4 text-[#16a34a] rounded"/>
+                    <input type="checkbox" wire:model.live="editEsSocio" id="editEsSocio" class="w-4 h-4 text-[#16a34a] rounded"/>
                     <label for="editEsSocio" class="text-sm text-gray-700">Es socio del club</label>
                 </div>
+
+                @if($editEsSocio)
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Número de socio <span class="text-gray-400 font-normal">(opcional)</span></label>
+                    <input type="text" inputmode="numeric" pattern="[0-9]*"
+                           wire:model="editNroSocio"
+                           placeholder="Ej: 12345"
+                           maxlength="5"
+                           oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,5)"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#16a34a]"/>
+                </div>
+                @endif
 
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Nueva contraseña (dejar vacío para no cambiar)</label>

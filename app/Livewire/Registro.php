@@ -27,9 +27,7 @@ class Registro extends Component
             'telefono'  => ['required', 'string', 'max:20', 'regex:/\d{10,}/'],
             'email'     => 'required|email|unique:users,email',
             'password'  => 'required|string|min:6',
-            'nro_socio' => $this->es_socio
-                ? ['required', 'string', 'max:5', 'regex:/^[0-9]+$/']
-                : ['nullable', 'string'],
+            'nro_socio' => ['nullable', 'string', 'max:5', 'regex:/^[0-9]*$/'],
         ];
     }
 
