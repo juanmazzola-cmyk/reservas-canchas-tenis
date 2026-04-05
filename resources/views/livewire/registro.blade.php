@@ -122,12 +122,13 @@
                     <div x-show="socio" x-transition style="display:none" class="mt-3">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Número de socio *</label>
                         <input
-                            type="number"
+                            type="text"
                             inputmode="numeric"
+                            pattern="[0-9]*"
                             wire:model="nro_socio"
                             placeholder="Ej: 12345"
                             maxlength="5"
-                            oninput="if(this.value.length>5) this.value=this.value.slice(0,5)"
+                            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,5)"
                             class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#16a34a] @error('nro_socio') border-red-400 @enderror"
                         />
                         <p class="text-gray-400 text-xs mt-1">Máximo 5 dígitos</p>
