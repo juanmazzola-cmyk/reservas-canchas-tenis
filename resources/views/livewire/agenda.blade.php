@@ -62,13 +62,14 @@
         </div>
         @endif
 
-        {{-- Acceso rápido: Seguimiento de torneos --}}
+        {{-- Acceso rápido: Seguimiento de torneos (desactivado temporalmente)
         <a href="{{ app()->environment('local') ? 'http://localhost/org-torneo-tenis/public' : 'https://torneos.proyectosia.com.ar' }}"
             class="flex items-center gap-2 w-full bg-[#c0522b] hover:bg-[#a8441f] text-white px-4 py-2 rounded-xl mb-2 transition">
             <span class="text-lg">🏆</span>
             <span class="text-sm font-semibold">Seguimiento de torneos</span>
             <span class="ml-auto font-bold opacity-80 tracking-tighter">&gt;&gt;&gt;&gt;&gt;</span>
         </a>
+        --}}
 
         {{-- Selector de días --}}
         <div class="flex gap-2 overflow-x-auto pt-1 pb-2 scrollbar-hide items-center">
