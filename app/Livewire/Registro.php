@@ -28,8 +28,8 @@ class Registro extends Component
             'email'     => 'required|email|unique:users,email',
             'password'  => 'required|string|min:6',
             'nro_socio' => $this->es_socio
-                ? 'required|digits_between:1,5'
-                : 'nullable',
+                ? 'required|string|regex:/^\d{1,5}$/'
+                : 'nullable|string',
         ];
     }
 
@@ -45,8 +45,8 @@ class Registro extends Component
         'email.unique'         => 'Ya existe una cuenta con ese email.',
         'password.required'    => 'La contraseña es obligatoria.',
         'password.min'         => 'La contraseña debe tener al menos 6 caracteres.',
-        'nro_socio.required'   => 'El número de socio es obligatorio.',
-        'nro_socio.digits_between' => 'El número de socio debe tener entre 1 y 5 dígitos.',
+        'nro_socio.required' => 'El número de socio es obligatorio.',
+        'nro_socio.regex'    => 'El número de socio debe ser numérico y tener hasta 5 dígitos.',
     ];
 
     public function registrar(): void
