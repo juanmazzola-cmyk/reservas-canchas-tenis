@@ -18,6 +18,7 @@ class User extends Authenticatable
         'password',
         'telefono',
         'es_socio',
+        'nro_socio',
         'rol',
         'must_change_password',
     ];

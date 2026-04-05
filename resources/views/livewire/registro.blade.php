@@ -117,6 +117,22 @@
                             <p class="font-bold text-sm leading-tight">Sí, soy socio</p>
                         </div>
                     </div>
+
+                    <!-- Número de socio (solo visible si es socio) -->
+                    <div x-show="socio" x-transition style="display:none" class="mt-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Número de socio *</label>
+                        <input
+                            type="number"
+                            inputmode="numeric"
+                            wire:model="nro_socio"
+                            placeholder="Ej: 12345"
+                            maxlength="5"
+                            oninput="if(this.value.length>5) this.value=this.value.slice(0,5)"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#16a34a] @error('nro_socio') border-red-400 @enderror"
+                        />
+                        <p class="text-gray-400 text-xs mt-1">Máximo 5 dígitos</p>
+                        @error('nro_socio') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
 
                 <!-- Botón -->
