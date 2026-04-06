@@ -70,7 +70,7 @@
         </div>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" class="text-xs border border-white px-3 py-1 rounded hover:bg-white hover:text-verde transition-colors">
+            <button type="submit" class="text-xs border border-verde bg-white text-verde px-3 py-1 rounded hover:bg-verde hover:text-white transition-colors">
                 Salir
             </button>
         </form>
