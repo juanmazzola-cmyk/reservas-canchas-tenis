@@ -1,6 +1,6 @@
 {
-    "name": "Ateneo JAM - Reservas de Tenis",
-    "short_name": "Ateneo JAM",
+    "name": "Tenis Liga - Reservas de Tenis",
+    "short_name": "Tenis Liga",
     "description": "Reservá tu cancha de tenis online",
     "start_url": "/",
     "display": "standalone",
