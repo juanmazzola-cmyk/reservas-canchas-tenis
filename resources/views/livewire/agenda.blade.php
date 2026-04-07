@@ -302,6 +302,7 @@
         $totalActual = count($jugadoresSeleccionados) + count($invitadoApellidos);
         $hayInvitadoSinApellido = collect($invitadoApellidos)->contains(fn($a) => trim($a) === '');
         $puedeConfirmar = $totalActual >= $maxJugadores && !$avisoConflicto && !$hayInvitadoSinApellido;
+        $hayNoSocioOInvitado = !empty($invitadoApellidos) || collect($jugadoresSeleccionados)->contains(fn($j) => !$j['es_socio']);
     @endphp
     <div class="fixed left-0 right-0 bottom-0 z-50 flex flex-col bg-white shadow-2xl" :style="'top:' + stickyTop + 'px'">
 
@@ -475,6 +476,8 @@
                         Completá los jugadores
                     @elseif($hayInvitadoSinApellido)
                         Completá los apellidos de invitados
+                    @elseif($hayNoSocioOInvitado)
+                        CONFIRMAR RESERVA Y REALIZAR EL PAGO
                     @else
                         CONFIRMAR RESERVA
                     @endif
