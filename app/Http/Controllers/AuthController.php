@@ -35,7 +35,7 @@ class AuthController extends Controller
         if (Auth::check()) {
             \App\Models\Reserva::where('estado', 'DRAFT')
                 ->where('creador_id', Auth::id())
-                ->update(['estado' => 'PENDING']);
+                ->delete();
         }
 
         Auth::logout();
