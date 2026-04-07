@@ -525,11 +525,10 @@
             </div>
         </div>
     </div>
+    @script
     <script>
-    (function() {
-        function initGuard() {
-            const nav = document.querySelector('nav.fixed.bottom-0');
-            if (!nav || nav._pagoGuardInit) return;
+        const nav = document.querySelector('nav.fixed.bottom-0');
+        if (nav && !nav._pagoGuardInit) {
             nav._pagoGuardInit = true;
             nav.addEventListener('click', function(e) {
                 const link = e.target.closest('a');
@@ -541,13 +540,7 @@
                 window.dispatchEvent(new CustomEvent('pago-nav-guard', { detail: { destino: href } }));
             }, true);
         }
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initGuard);
-        } else {
-            initGuard();
-        }
-        document.addEventListener('livewire:navigated', initGuard);
-    })();
     </script>
+    @endscript
     @endif
 </div>
