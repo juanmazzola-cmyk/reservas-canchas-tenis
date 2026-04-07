@@ -32,6 +32,12 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        if (Auth::check()) {
+            \App\Models\Reserva::where('estado', 'DRAFT')
+                ->where('creador_id', Auth::id())
+                ->update(['estado' => 'PENDING']);
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
