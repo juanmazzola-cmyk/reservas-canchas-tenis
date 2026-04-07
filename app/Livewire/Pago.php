@@ -185,6 +185,20 @@ class Pago extends Component
         $this->redirect(route('agenda'));
     }
 
+    public function pausarReserva(string $destino = ''): void
+    {
+        $r = Reserva::find($this->reservaId);
+        if ($r && $r->estado === 'DRAFT' && Auth::id() === $r->creador_id) {
+            $r->update(['estado' => 'PENDING']);
+        }
+
+        $url = (str_starts_with($destino, '/') && !str_starts_with($destino, '//'))
+            ? $destino
+            : route('agenda');
+
+        $this->redirect($url);
+    }
+
     public function cancelarYVolver(): void
     {
         $r = Reserva::find($this->reservaId);

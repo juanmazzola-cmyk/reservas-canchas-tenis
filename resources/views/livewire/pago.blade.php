@@ -499,4 +499,55 @@
 
     @endif {{-- miPagoEstado === PENDIENTE --}}
     @endif {{-- outer @else --}}
+
+    {{-- Guard: confirmación al navegar con el zócalo estando en proceso de pago --}}
+    @if($turno_estado === 'DRAFT')
+    <div x-data="{ mostrar: false, destino: '' }"
+         @pago-nav-guard.window="mostrar = true; destino = $event.detail.destino"
+         x-cloak>
+        <div x-show="mostrar" class="fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6 space-y-4">
+                <div class="text-center">
+                    <div class="text-4xl mb-2">⚠️</div>
+                    <h3 class="font-bold text-base text-gray-900">¿Salir del proceso de pago?</h3>
+                    <p class="text-sm text-gray-600 mt-2">La reserva quedará guardada y podrás completar el pago desde <strong>Mis Turnos</strong>.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button @click="mostrar = false; destino = ''"
+                            class="flex-1 border border-gray-300 text-gray-600 py-2.5 rounded-xl text-sm font-medium">
+                        Quedarme
+                    </button>
+                    <button @click="mostrar = false; $wire.pausarReserva(destino)"
+                            class="flex-1 bg-[#0057a8] text-white py-2.5 rounded-xl text-sm font-bold">
+                        Salir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    (function() {
+        function initGuard() {
+            const nav = document.querySelector('nav.fixed.bottom-0');
+            if (!nav || nav._pagoGuardInit) return;
+            nav._pagoGuardInit = true;
+            nav.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (!link) return;
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('http') || href.startsWith('//')) return;
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                window.dispatchEvent(new CustomEvent('pago-nav-guard', { detail: { destino: href } }));
+            }, true);
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGuard);
+        } else {
+            initGuard();
+        }
+        document.addEventListener('livewire:navigated', initGuard);
+    })();
+    </script>
+    @endif
 </div>
