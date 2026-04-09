@@ -28,6 +28,9 @@
         }
     </script>
     @livewireStyles
+    <style>
+        #nprogress { display: none !important; }
+    </style>
 </head>
 <body class="bg-white sm:bg-gray-100 min-h-[100dvh] flex items-stretch sm:items-center justify-center">
     {{ $slot }}

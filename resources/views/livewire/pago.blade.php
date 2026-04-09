@@ -77,22 +77,28 @@
             </div>
         </div>
         @endif
-        @if($config->mp_access_token && $totalAPagar > 0)
-        <a href="{{ route('mp.iniciar', $reservaId) }}"
-           class="bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 hover:bg-[#0082c0] transition-colors no-underline">
+        <button type="button" onclick="document.getElementById('mp-modal-1').style.display='flex'"
+           class="bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 hover:bg-[#0082c0] transition-colors">
             <svg viewBox="0 0 48 48" class="w-10 h-10 fill-white flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
                 <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm-2 28.5l-7-7 2.12-2.12L22 28.26l8.88-8.88L33 21.5l-11 11z"/>
             </svg>
             <p class="text-white font-bold text-xs text-center leading-tight">Pagar con<br>Mercado Pago</p>
-        </a>
-        @else
-        <div class="bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 opacity-50">
-            <svg viewBox="0 0 48 48" class="w-10 h-10 fill-white flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
-                <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm-2 28.5l-7-7 2.12-2.12L22 28.26l8.88-8.88L33 21.5l-11 11z"/>
-            </svg>
-            <p class="text-white font-bold text-xs text-center leading-tight">Mercado Pago<br><span class="font-normal opacity-80 text-[10px]">Próximamente</span></p>
+        </button>
+    </div>
+
+    {{-- Modal MP no habilitado --}}
+    <div id="mp-modal-1" style="display:none"
+         class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4"
+         onclick="if(event.target===this) this.style.display='none'">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6 text-center">
+            <div class="text-4xl mb-3">💳</div>
+            <h3 class="font-bold text-lg mb-2 text-gray-800">Mercado Pago</h3>
+            <p class="text-sm text-gray-600 mb-5">Por el momento no está habilitado.</p>
+            <button onclick="document.getElementById('mp-modal-1').style.display='none'"
+                    class="w-full bg-[#009EE3] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-[#0082c0] transition-colors">
+                Entendido
+            </button>
         </div>
-        @endif
     </div>
 
     {{-- Upload --}}
@@ -410,23 +416,29 @@
         @endif
 
         {{-- Mercado Pago --}}
-        @if($config->mp_access_token && $totalAPagar > 0)
-        <a href="{{ route('mp.iniciar', $reservaId) }}"
-           class="bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 hover:bg-[#0082c0] transition-colors no-underline">
+        <button type="button" onclick="document.getElementById('mp-modal-2').style.display='flex'"
+           class="bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 hover:bg-[#0082c0] transition-colors">
             <svg viewBox="0 0 48 48" class="w-10 h-10 fill-white flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
                 <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm-2 28.5l-7-7 2.12-2.12L22 28.26l8.88-8.88L33 21.5l-11 11z"/>
             </svg>
             <p class="text-white font-bold text-xs text-center leading-tight">Pagar con<br>Mercado Pago</p>
-        </a>
-        @else
-        <div class="bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 opacity-50">
-            <svg viewBox="0 0 48 48" class="w-10 h-10 fill-white flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
-                <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm-2 28.5l-7-7 2.12-2.12L22 28.26l8.88-8.88L33 21.5l-11 11z"/>
-            </svg>
-            <p class="text-white font-bold text-xs text-center leading-tight">Mercado Pago<br><span class="font-normal opacity-80 text-[10px]">Próximamente</span></p>
-        </div>
-        @endif
+        </button>
 
+    </div>
+
+    {{-- Modal MP no habilitado --}}
+    <div id="mp-modal-2" style="display:none"
+         class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4"
+         onclick="if(event.target===this) this.style.display='none'">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6 text-center">
+            <div class="text-4xl mb-3">💳</div>
+            <h3 class="font-bold text-lg mb-2 text-gray-800">Mercado Pago</h3>
+            <p class="text-sm text-gray-600 mb-5">Por el momento no está habilitado.</p>
+            <button onclick="document.getElementById('mp-modal-2').style.display='none'"
+                    class="w-full bg-[#009EE3] text-white py-2.5 rounded-lg text-sm font-bold hover:bg-[#0082c0] transition-colors">
+                Entendido
+            </button>
+        </div>
     </div>
 
     {{-- Subir comprobante --}}
