@@ -272,7 +272,7 @@
                     <p class="text-sm font-medium text-gray-800">{{ $u['apellido'] }}, {{ $u['nombre'] }}</p>
                     <p class="text-xs text-gray-400">{{ $u['telefono'] }}</p>
                 </div>
-                <a :href="`https://wa.me/{{ preg_replace('/\D/', '', $u['telefono']) }}?text=${encodeURIComponent(mensaje)}`"
+                <a :href="`https://wa.me/54{{ ltrim(preg_replace('/\D/', '', $u['telefono']), '0') }}?text=${encodeURIComponent(mensaje)}`"
                    target="_blank"
                    class="flex-shrink-0 bg-[#25D366] text-white text-xs px-3 py-1.5 rounded-lg hover:bg-green-600 font-medium">
                     Enviar

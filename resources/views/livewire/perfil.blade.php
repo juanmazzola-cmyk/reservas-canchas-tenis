@@ -57,7 +57,10 @@
                 @endif
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Teléfono</label>
-                    <input type="tel" wire:model="telefono" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8]"/>
+                    <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#0057a8]">
+                        <span class="bg-gray-100 border-r border-gray-300 px-3 py-2 text-sm text-gray-500 font-medium select-none">+54</span>
+                        <input type="tel" wire:model="telefono" placeholder="1123456789 (sin 0, sin 15)" class="flex-1 px-3 py-2 text-sm focus:outline-none"/>
+                    </div>
                 </div>
 
                 <div>
