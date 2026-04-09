@@ -233,7 +233,7 @@
                 @if($cfgUbic?->admin_whatsapp)
                 @php
                     $waNumero = preg_replace('/\D/', '', $cfgUbic->admin_whatsapp);
-                    $waContacto = 'https://wa.me/549' . ltrim($waNumero, '0');
+                    $waContacto = 'https://wa.me/54' . ltrim($waNumero, '0');
                 @endphp
                 <a href="{{ $waContacto }}" target="_blank"
                    class="flex flex-col items-center gap-0.5 text-xs px-2 py-1 rounded transition-colors text-gray-900 opacity-80 hover:opacity-100">
@@ -318,7 +318,7 @@
                 @if($cfgUbic?->admin_whatsapp)
                 @php
                     $waNumero = preg_replace('/\D/', '', $cfgUbic->admin_whatsapp);
-                    $waContacto = 'https://wa.me/549' . ltrim($waNumero, '0');
+                    $waContacto = 'https://wa.me/54' . ltrim($waNumero, '0');
                 @endphp
                 <a href="{{ $waContacto }}" target="_blank"
                    class="flex flex-col items-center gap-0.5 text-xs px-2 py-1 rounded transition-colors text-gray-900 opacity-80 hover:opacity-100">
