@@ -30,7 +30,7 @@
     @livewireStyles
     <style>
         [x-cloak] { display: none !important; }
-        #nprogress .peg { display: none !important; }
+        #nprogress { display: none !important; }
         .bounce-in { animation: bounceIn 0.5s ease; }
         @keyframes bounceIn {
             0% { transform: translateY(-20px); opacity: 0; }
