@@ -280,7 +280,7 @@ class Agenda extends Component
         $diaInfo = collect($this->dias)->firstWhere('clave', $this->diaSeleccionado);
         if (!$diaInfo) return false;
 
-        $fechaHora = Carbon::parse($diaInfo['fecha'] . ' ' . $hora)->addMinutes(10);
+        $fechaHora = Carbon::parse($diaInfo['fecha'] . ' ' . $hora)->addMinutes(90);
         return $fechaHora->isPast();
     }
 
