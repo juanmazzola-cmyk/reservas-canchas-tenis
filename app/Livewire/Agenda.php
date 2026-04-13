@@ -62,9 +62,9 @@ class Agenda extends Component
             ->where('creador_id', Auth::id())
             ->delete();
 
-        // Limpiar slots DRAFT viejos de cualquier usuario (más de 30 minutos)
+        // Limpiar slots DRAFT viejos de cualquier usuario (más de 5 minutos)
         Reserva::where('estado', 'DRAFT')
-            ->where('created_at', '<', Carbon::now()->subMinutes(30))
+            ->where('created_at', '<', Carbon::now()->subMinutes(5))
             ->delete();
 
         // Cancelar automáticamente reservas PENDING/PARTIAL_PAYMENT que llegaron a 15 min del turno sin completar el pago

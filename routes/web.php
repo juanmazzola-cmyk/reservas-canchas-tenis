@@ -33,6 +33,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/pago/mp/pending', [MercadoPagoController::class, 'pending'])->name('mp.pending');
     Route::get('/perfil', \App\Livewire\Perfil::class)->name('perfil');
 
+    // Cancela una reserva DRAFT cuando el usuario cierra el browser desde la pantalla de pago
+    Route::post('/reserva/{id}/cancelar-draft', function ($id) {
+        $r = \App\Models\Reserva::where('id', $id)
+            ->where('estado', 'DRAFT')
+            ->where('creador_id', \Illuminate\Support\Facades\Auth::id())
+            ->first();
+        if ($r) $r->delete();
+        return response()->json(['ok' => true]);
+    })->name('reserva.cancelar-draft');
+
     // Admin
     Route::get('/admin/usuarios', \App\Livewire\Admin\Usuarios::class)->name('admin.usuarios');
     Route::get('/admin/configuracion', \App\Livewire\Admin\Configuracion::class)->name('admin.configuracion');

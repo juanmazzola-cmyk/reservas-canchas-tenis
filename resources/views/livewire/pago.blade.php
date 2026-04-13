@@ -552,6 +552,14 @@
                 window.dispatchEvent(new CustomEvent('pago-nav-guard', { detail: { destino: href } }));
             }, true);
         }
+
+        // Cuando el usuario cierra el browser/app sin pagar, cancelar el DRAFT inmediatamente.
+        // sendBeacon completa el request incluso si el browser ya está cerrando (funciona en móvil).
+        window.addEventListener('pagehide', function() {
+            const data = new FormData();
+            data.append('_token', '{{ csrf_token() }}');
+            navigator.sendBeacon('{{ route('reserva.cancelar-draft', $reservaId) }}', data);
+        });
     </script>
     @endscript
     @endif
