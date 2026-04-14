@@ -47,7 +47,8 @@
       "Bash(\"C:/xampp/htdocs/reservas-canchas-tenis/public/logo-b64.txt\")",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(grep -n \"numero_socio\\\\|nro_socio\" /c/xampp/htdocs/reservas-canchas-tenis/database/migrations/*.php)"
     ]
   }
 }

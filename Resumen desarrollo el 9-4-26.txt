@@ -1,0 +1,34 @@
+Resumen del día — 2026-04-09
+                                                                                                                          Lo que hicimos
+                                                                                                                          1. Botón Mercado Pago
+  - Estaba navegando a la ruta /pago/mp/iniciar y tiraba error 500
+  - Ahora muestra un modal con el texto "Por el momento no está habilitado."
+  - Funciona con JS puro (sin Alpine) para evitar conflictos con Livewire
+  - Hay dos secciones en pago.blade.php donde aparece el botón — ambas corregidas
+
+  2. Barra de progreso (dos líneas paralelas)
+  - Son el NProgress de Livewire (barra + peg)
+  - Se ocultó completamente en el layout del login y en el de la app
+  - Pendiente confirmar en producción que desaparecieron
+
+  3. WhatsApp — prefijo +54
+  - Los links generaban números sin país (ej: wa.me/1112345678 → WhatsApp lo leía como +1 112...)
+  - Se corrigió en 3 lugares: lista de usuarios admin, WhatsApp masivo, y botón de contacto del nav
+  - Los campos de teléfono en Registro, Perfil y Config admin ahora muestran [+54 | campo] visualmente
+  - El número se guarda sin el 54 en la base de datos — el prefijo se agrega solo al generar el link
+
+  ---
+  Estado del proyecto
+
+  ┌────────────────────────────────────┬─────────────────────────────────────────────┐
+  │                Área                │                   Estado                    │
+  ├────────────────────────────────────┼─────────────────────────────────────────────┤
+  │ Reservas y pagos por transferencia │ Funcionando                                 │
+  ├────────────────────────────────────┼─────────────────────────────────────────────┤
+  │ Mercado Pago                       │ Bloqueado con modal (tokens no habilitados) │
+  ├────────────────────────────────────┼─────────────────────────────────────────────┤
+  │ WhatsApp usuarios                  │ Corregido hoy                               │
+  ├────────────────────────────────────┼─────────────────────────────────────────────┤
+  │ Progress bar                       │ Corregido (confirmar en producción)         │
+  ├────────────────────────────────────┼─────────────────────────────────────────────┤
+  │ PWA                                │ Instalable (dominio + HTTPS activos)        │

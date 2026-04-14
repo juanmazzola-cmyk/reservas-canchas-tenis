@@ -79,7 +79,12 @@ class Agenda extends Component
                 $mes = $meses[strtolower($partes[2])] ?? null;
                 if (!$mes) continue;
                 $fechaHora = Carbon::create(Carbon::now()->year, $mes, (int)$partes[1], ...explode(':', $rp->hora));
-                if ($fechaHora->subMinutes(15)->isPast()) {
+                $matchStarted = $fechaHora->copy()->isPast();
+                $matchEnded   = $fechaHora->copy()->addMinutes(90)->isPast();
+                $paymentDeadlinePassed = $fechaHora->copy()->subMinutes(15)->isPast();
+                // Cancelar solo antes del partido (vencimiento pago) o después de que termine (90 min)
+                // Durante el partido NO cancelar: la reserva debe seguir visible en la grilla
+                if ($paymentDeadlinePassed && (!$matchStarted || $matchEnded)) {
                     $rp->delete();
                 }
             } catch (\Exception $e) { continue; }
