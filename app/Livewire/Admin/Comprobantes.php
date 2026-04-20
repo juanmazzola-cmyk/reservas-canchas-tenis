@@ -53,7 +53,7 @@ class Comprobantes extends Component
     private function reservaVencida(Reserva $r): bool
     {
         $ts = $this->parsearFechaHora($r->dia, $r->hora);
-        return $ts && $ts->isPast();
+        return $ts && $ts->addMinutes(90)->isPast();
     }
 
     private function parsearFechaHora(string $dia, string $hora): ?Carbon
