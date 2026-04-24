@@ -28,7 +28,13 @@ class ComprobanteVerificador
             default      => 'image/jpeg',
         };
 
-        $importeFormateado = '$' . number_format($importeEsperado, 0, ',', '.');
+        // Variantes de formato argentino para que la IA reconozca cualquier representación del mismo valor
+        $importeEntero     = (int) round($importeEsperado);
+        $importeFormateado = '$' . number_format($importeEntero, 0, ',', '.');        // $10.000
+        $importeConDec     = '$' . number_format($importeEsperado, 2, ',', '.');      // $10.000,00
+        $importeSinSimbolo = number_format($importeEntero, 0, ',', '.');              // 10.000
+        $importeSinSimDec  = number_format($importeEsperado, 2, ',', '.');            // 10.000,00
+        $importeRaw        = (string) $importeEntero;                                 // 10000
         $ahora  = $fechaHoraBase ?? now();
         $desde  = $ahora->copy()->subMinutes($minutosVentana);
 
@@ -70,14 +76,14 @@ Si NO es un comprobante bancario válido, devolvé es_comprobante: false y no an
 Si SÍ es un comprobante bancario válido, verificá:
 
 Datos esperados del pago:
-- Importe a pagar: {$importeFormateado}
+- Importe a pagar: {$importeFormateado} (equivalente a: {$importeConDec}, {$importeSinSimbolo}, {$importeSinSimDec}, {$importeRaw})
 - Identificadores de la cuenta destino (buscá CUALQUIERA de estos): {$lineaIdentificadores}
 - Ventana de tiempo válida: entre {$fechaHoraDesde} y {$fechaHoraHasta}
 
 REGLA IMPORTANTE para todos los campos: usá null SOLO si el dato no aparece o no es legible en el comprobante. Usá false si el dato SÍ aparece y es legible pero NO coincide con el valor esperado. Usá true si el dato aparece y coincide.
 
 1. Buscá la fecha Y hora del comprobante. Verificá si cae dentro de la ventana válida ({$fechaHoraDesde} a {$fechaHoraHasta}). Tené en cuenta que si la ventana cruza la medianoche, la fecha puede ser {$fechaAyer} o {$fechaHoy}. Si el comprobante no muestra hora, verificá solo que la fecha sea {$fechaHoy} o {$fechaAyer}. Si la fecha es legible pero no corresponde → fecha_ok: false. Si no es legible → fecha_ok: null.
-2. Buscá el importe transferido. Si es legible y coincide con {$importeFormateado} → importe_ok: true. Si es legible pero es diferente (mayor o menor) → importe_ok: false. Si no es legible → importe_ok: null.
+2. Buscá el importe transferido. Comparalo por valor numérico, no por formato: {$importeFormateado}, {$importeConDec}, {$importeSinSimbolo}, {$importeSinSimDec} y {$importeRaw} representan el mismo importe ({$importeRaw} pesos). Si el importe del comprobante es legible y representa ese mismo valor → importe_ok: true. Si es legible pero el valor numérico es distinto (mayor o menor) → importe_ok: false. Si no es legible → importe_ok: null.
 3. Buscá en el comprobante CUALQUIERA de estos identificadores de cuenta destino: alias, CBU/CVU o número de cuenta corriente. Si encontrás al menos uno y coincide → alias_ok: true. Si encontrás alguno pero no coincide → alias_ok: false. Si no aparece ninguno → alias_ok: null.
 
 Respondé ÚNICAMENTE con un objeto JSON válido, sin markdown, sin texto extra:
