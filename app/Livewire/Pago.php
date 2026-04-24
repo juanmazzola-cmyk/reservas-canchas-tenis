@@ -248,7 +248,11 @@ class Pago extends Component
         }
 
         // Analizar importe: acepta pago total O pago parcial (solo su cuota, sin invitados)
-        $importeNum  = (float) preg_replace('/[^\d]/', '', $verificacion['importe_encontrado'] ?? '0');
+        // Normalizar importe argentino: "$ 10.000,00" → 10000.00
+        $importeRaw = preg_replace('/[^\d,.]/', '', $verificacion['importe_encontrado'] ?? '0');
+        $importeRaw = str_replace('.', '', $importeRaw);   // eliminar puntos de miles
+        $importeRaw = str_replace(',', '.', $importeRaw);  // coma decimal → punto
+        $importeNum = (float) $importeRaw;
         $pagoCompleto = ($verificacion['importe_ok'] ?? null) === true;
         $pagoParcial  = !$pagoCompleto
             && !$this->hayInvitados
