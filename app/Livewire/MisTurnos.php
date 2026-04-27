@@ -103,28 +103,34 @@ class MisTurnos extends Component
             return;
         }
 
-        $userId = Auth::id();
-        $this->reservas = Reserva::whereJsonContains('jugadores_ids', $userId)
+        $userId   = Auth::id();
+        $reservas = Reserva::whereJsonContains('jugadores_ids', $userId)
             ->where('estado', '!=', 'DRAFT')
-            ->get()
-            ->map(function ($r) use ($userId) {
-                $jugadores = User::whereIn('id', $r->jugadores_ids ?? [])->get(['id', 'nombre', 'apellido', 'es_socio']);
+            ->get();
+
+        [$usuariosPorId, $pagosPorReserva] = $this->batchCargarUsuariosYPagos($reservas);
+
+        $this->reservas = $reservas
+            ->map(function ($r) use ($userId, $usuariosPorId, $pagosPorReserva) {
+                $pagosDeEstaReserva = $pagosPorReserva->get($r->id, collect());
+                $pagosKeyBy         = $pagosDeEstaReserva->keyBy('user_id');
+                $miPago             = $pagosDeEstaReserva->firstWhere('user_id', $userId);
+
+                $jugadoresConPago = collect($r->jugadores_ids ?? [])
+                    ->map(fn($id) => $usuariosPorId->get($id))
+                    ->filter()
+                    ->map(fn($u) => array_merge($u->toArray(), [
+                        'es_invitado' => false,
+                        'pago_estado' => $pagosKeyBy->get($u->id)?->estado ?? null,
+                    ]))->toArray();
+
                 $invitados = collect($r->invitados ?? [])->map(fn($inv) => [
-                    'id'       => null,
-                    'nombre'   => 'Invitado',
-                    'apellido' => $inv['apellido'] ?? '',
-                    'es_socio' => false,
+                    'id'          => null,
+                    'nombre'      => 'Invitado',
+                    'apellido'    => $inv['apellido'] ?? '',
+                    'es_socio'    => false,
                     'es_invitado' => true,
                 ])->toArray();
-                $miPago = Pago::where('reserva_id', $r->id)
-                    ->where('user_id', $userId)
-                    ->first();
-
-                $pagosReserva = Pago::where('reserva_id', $r->id)->get()->keyBy('user_id');
-                $jugadoresConPago = $jugadores->map(fn($j) => array_merge($j->toArray(), [
-                    'es_invitado'  => false,
-                    'pago_estado'  => $pagosReserva[$j->id]?->estado ?? null,
-                ]))->toArray();
 
                 return array_merge($r->toArray(), [
                     'jugadores'      => array_merge($jugadoresConPago, $invitados),
@@ -149,11 +155,25 @@ class MisTurnos extends Component
             . ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][$hoy->month]
         );
 
-        $this->reservas = Reserva::where('dia', $diaStr)
+        $reservas = Reserva::where('dia', $diaStr)
             ->where('estado', '!=', 'SUSPENDIDA')
-            ->get()
-            ->map(function ($r) {
-                $jugadores = User::whereIn('id', $r->jugadores_ids ?? [])->get(['id', 'nombre', 'apellido', 'es_socio']);
+            ->get();
+
+        [$usuariosPorId, $pagosPorReserva] = $this->batchCargarUsuariosYPagos($reservas);
+
+        $this->reservas = $reservas
+            ->map(function ($r) use ($usuariosPorId, $pagosPorReserva) {
+                $pagosDeEstaReserva = $pagosPorReserva->get($r->id, collect());
+                $pagosKeyBy         = $pagosDeEstaReserva->keyBy('user_id');
+
+                $jugadoresConPago = collect($r->jugadores_ids ?? [])
+                    ->map(fn($id) => $usuariosPorId->get($id))
+                    ->filter()
+                    ->map(fn($u) => array_merge($u->toArray(), [
+                        'es_invitado' => false,
+                        'pago_estado' => $pagosKeyBy->get($u->id)?->estado ?? null,
+                    ]))->toArray();
+
                 $invitados = collect($r->invitados ?? [])->map(fn($inv) => [
                     'id'          => null,
                     'nombre'      => 'Invitado',
@@ -162,12 +182,6 @@ class MisTurnos extends Component
                     'es_invitado' => true,
                     'pago_estado' => null,
                 ])->toArray();
-
-                $pagosReserva = Pago::where('reserva_id', $r->id)->get()->keyBy('user_id');
-                $jugadoresConPago = $jugadores->map(fn($j) => array_merge($j->toArray(), [
-                    'es_invitado' => false,
-                    'pago_estado' => $pagosReserva[$j->id]?->estado ?? null,
-                ]))->toArray();
 
                 return array_merge($r->toArray(), [
                     'jugadores'      => array_merge($jugadoresConPago, $invitados),
@@ -180,6 +194,22 @@ class MisTurnos extends Component
             ->sortBy('fecha_sort')
             ->values()
             ->toArray();
+    }
+
+    private function batchCargarUsuariosYPagos(\Illuminate\Support\Collection $reservas): array
+    {
+        $todosUserIds    = $reservas->flatMap(fn($r) => $r->jugadores_ids ?? [])->unique()->values()->toArray();
+        $todosReservaIds = $reservas->pluck('id')->toArray();
+
+        $usuariosPorId = !empty($todosUserIds)
+            ? User::whereIn('id', $todosUserIds)->get(['id', 'nombre', 'apellido', 'es_socio'])->keyBy('id')
+            : collect();
+
+        $pagosPorReserva = !empty($todosReservaIds)
+            ? Pago::whereIn('reserva_id', $todosReservaIds)->get()->groupBy('reserva_id')
+            : collect();
+
+        return [$usuariosPorId, $pagosPorReserva];
     }
 
     private function parsearFechaHora(string $dia, string $hora): string

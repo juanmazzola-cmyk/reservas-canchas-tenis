@@ -10,6 +10,7 @@ use App\Models\MotivoBloqueo;
 use App\Models\Pago;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class Agenda extends Component
@@ -524,105 +525,125 @@ class Agenda extends Component
 
         $ids = array_column($this->jugadoresSeleccionados, 'id');
 
-        // Verificar que la celda sigue libre
-        $existente = Reserva::where('dia', $this->modalDia)
-            ->where('hora', $this->modalHora)
-            ->where('cancha_id', $this->modalCancha)
-            ->first();
+        $reserva    = null;
+        $slotTomado = false;
+        $conflicto  = null;
 
-        if ($existente) {
-            $this->dispatch('toast', message: 'Ese turno ya fue tomado.', type: 'error');
-            $this->modalReserva = false;
-            $this->cargarReservasYBloqueos();
+        try {
+            DB::transaction(function () use ($ids, &$reserva, &$slotTomado, &$conflicto) {
+                // Verificar que la celda sigue libre (con lock para serializar requests concurrentes)
+                $existente = Reserva::where('dia', $this->modalDia)
+                    ->where('hora', $this->modalHora)
+                    ->where('cancha_id', $this->modalCancha)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existente) {
+                    $slotTomado = true;
+                    return;
+                }
+
+                // Verificar conflictos: mismo horario o horario consecutivo para cualquier jugador
+                $horaIdx = array_search($this->modalHora, $this->horarios);
+                $horasAVerificar = [$this->modalHora];
+                if ($horaIdx !== false && $horaIdx > 0) {
+                    $horasAVerificar[] = $this->horarios[$horaIdx - 1];
+                }
+                if ($horaIdx !== false && $horaIdx < count($this->horarios) - 1) {
+                    $horasAVerificar[] = $this->horarios[$horaIdx + 1];
+                }
+
+                $reservasExistentes = Reserva::where('dia', $this->modalDia)
+                    ->whereIn('hora', $horasAVerificar)
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($reservasExistentes as $r) {
+                    $idsEnConflicto = array_intersect($ids, $r->jugadores_ids ?? []);
+                    if (!empty($idsEnConflicto)) {
+                        $jugador = collect($this->jugadoresSeleccionados)
+                            ->first(fn($j) => in_array($j['id'], $idsEnConflicto));
+                        $nombre = $jugador ? $jugador['apellido'] . ', ' . $jugador['nombre'] : 'Un jugador';
+                        $conflicto = $r->hora === $this->modalHora
+                            ? "{$nombre} ya tiene un turno a las {$r->hora}."
+                            : "{$nombre} tiene un turno consecutivo a las {$r->hora}.";
+                        return;
+                    }
+                }
+
+                // Los invitados nunca son socios
+                $hayInvitados = !empty($this->invitadoApellidos);
+                $todosSocios  = !$hayInvitados && collect($this->jugadoresSeleccionados)->every(fn($j) => $j['es_socio']);
+
+                // Armar el array de invitados para guardar
+                $invitadosData = [];
+                foreach ($this->invitadoApellidos as $slot => $apellido) {
+                    $invitadosData[] = ['slot' => 'invitado' . $slot, 'apellido' => ucwords(strtolower(trim($apellido)))];
+                }
+
+                $reserva = Reserva::create([
+                    'dia'           => $this->modalDia,
+                    'hora'          => $this->modalHora,
+                    'cancha_id'     => $this->modalCancha,
+                    'jugadores_ids' => $ids,
+                    'invitados'     => !empty($invitadosData) ? $invitadosData : null,
+                    'creador_id'    => Auth::id(),
+                    'esta_pagado'   => $todosSocios,
+                    'estado'        => $todosSocios ? 'AUTHORIZED' : 'DRAFT',
+                ]);
+
+                if (!$todosSocios) {
+                    // Crear registros de pago en el mismo bloque atómico
+                    $config = Configuracion::getConfig();
+                    $precio = (float) ($config->non_member_price ?? 0);
+
+                    if ($hayInvitados) {
+                        // Con invitados: el creador paga el total de TODOS los no-socios (registrados + invitados)
+                        $cantNoSociosReg = collect($this->jugadoresSeleccionados)->where('es_socio', false)->count();
+                        $cantInvitados   = count($this->invitadoApellidos);
+                        Pago::create([
+                            'reserva_id' => $reserva->id,
+                            'user_id'    => Auth::id(),
+                            'monto'      => ($cantNoSociosReg + $cantInvitados) * $precio,
+                            'estado'     => 'PENDIENTE',
+                        ]);
+                    } else {
+                        // Sin invitados: cada no-socio registrado paga su parte individual
+                        foreach ($this->jugadoresSeleccionados as $jugador) {
+                            if (!$jugador['es_socio']) {
+                                Pago::create([
+                                    'reserva_id' => $reserva->id,
+                                    'user_id'    => $jugador['id'],
+                                    'monto'      => $precio,
+                                    'estado'     => 'PENDIENTE',
+                                ]);
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', message: 'Error al crear la reserva. Intentá de nuevo.', type: 'error');
             return;
         }
-
-        // Verificar conflictos: mismo horario o horario consecutivo para cualquier jugador
-        $horaIdx = array_search($this->modalHora, $this->horarios);
-        $horasAVerificar = [$this->modalHora];
-        if ($horaIdx !== false && $horaIdx > 0) {
-            $horasAVerificar[] = $this->horarios[$horaIdx - 1];
-        }
-        if ($horaIdx !== false && $horaIdx < count($this->horarios) - 1) {
-            $horasAVerificar[] = $this->horarios[$horaIdx + 1];
-        }
-
-        $reservasExistentes = Reserva::where('dia', $this->modalDia)
-            ->whereIn('hora', $horasAVerificar)
-            ->get();
-
-        foreach ($reservasExistentes as $r) {
-            $idsEnConflicto = array_intersect($ids, $r->jugadores_ids ?? []);
-            if (!empty($idsEnConflicto)) {
-                $jugador = collect($this->jugadoresSeleccionados)
-                    ->first(fn($j) => in_array($j['id'], $idsEnConflicto));
-                $nombre = $jugador ? $jugador['apellido'] . ', ' . $jugador['nombre'] : 'Un jugador';
-                if ($r->hora === $this->modalHora) {
-                    $this->dispatch('toast', message: "{$nombre} ya tiene un turno a las {$r->hora}.", type: 'error');
-                } else {
-                    $this->dispatch('toast', message: "{$nombre} tiene un turno consecutivo a las {$r->hora}.", type: 'error');
-                }
-                return;
-            }
-        }
-
-        // Los invitados nunca son socios
-        $hayInvitados = !empty($this->invitadoApellidos);
-        $todosSocios = !$hayInvitados && collect($this->jugadoresSeleccionados)->every(fn($j) => $j['es_socio']);
-
-        // Armar el array de invitados para guardar
-        $invitadosData = [];
-        foreach ($this->invitadoApellidos as $slot => $apellido) {
-            $invitadosData[] = ['slot' => 'invitado' . $slot, 'apellido' => ucwords(strtolower(trim($apellido)))];
-        }
-
-        $reserva = Reserva::create([
-            'dia'           => $this->modalDia,
-            'hora'          => $this->modalHora,
-            'cancha_id'     => $this->modalCancha,
-            'jugadores_ids' => $ids,
-            'invitados'     => !empty($invitadosData) ? $invitadosData : null,
-            'creador_id'    => Auth::id(),
-            'esta_pagado'   => $todosSocios,
-            'estado'        => $todosSocios ? 'AUTHORIZED' : 'DRAFT',
-        ]);
 
         $this->modalReserva = false;
 
-        if ($todosSocios) {
+        if ($slotTomado) {
+            $this->dispatch('toast', message: 'Ese turno ya fue tomado.', type: 'error');
             $this->cargarReservasYBloqueos();
-            $this->dispatch('toast', message: '¡Reserva confirmada! Todos los jugadores son socios.', type: 'success');
             return;
         }
 
-        // Crear registros de pago individuales
-        $config = Configuracion::getConfig();
-        $precio = (float) ($config->non_member_price ?? 0);
+        if ($conflicto) {
+            $this->dispatch('toast', message: $conflicto, type: 'error');
+            return;
+        }
 
-        if ($hayInvitados) {
-            // Con invitados: el creador paga el total de TODOS los no-socios (registrados + invitados)
-            $cantNoSociosReg  = collect($this->jugadoresSeleccionados)->where('es_socio', false)->count();
-            $cantInvitados    = count($this->invitadoApellidos);
-            $totalCreador     = ($cantNoSociosReg + $cantInvitados) * $precio;
-
-            Pago::create([
-                'reserva_id' => $reserva->id,
-                'user_id'    => Auth::id(),
-                'monto'      => $totalCreador,
-                'estado'     => 'PENDIENTE',
-            ]);
-        } else {
-            // Sin invitados: cada no-socio registrado paga su parte individual
-            foreach ($this->jugadoresSeleccionados as $jugador) {
-                if (!$jugador['es_socio']) {
-                    Pago::create([
-                        'reserva_id' => $reserva->id,
-                        'user_id'    => $jugador['id'],
-                        'monto'      => $precio,
-                        'estado'     => 'PENDIENTE',
-                    ]);
-                }
-            }
+        if ($reserva?->esta_pagado) {
+            $this->cargarReservasYBloqueos();
+            $this->dispatch('toast', message: '¡Reserva confirmada! Todos los jugadores son socios.', type: 'success');
+            return;
         }
 
         $this->redirect(route('pago', $reserva->id));
