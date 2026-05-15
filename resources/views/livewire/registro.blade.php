@@ -106,7 +106,7 @@
 
                 <!-- Es Socio -->
                 <div x-data="{ socio: @entangle('es_socio') }">
-                    <p class="text-sm font-medium text-gray-700 mb-2">¿Sos socio del club?</p>
+                    <p class="text-sm font-medium text-gray-700 mb-2">¿Sos socio de tenis?</p>
                     <div class="grid grid-cols-2 gap-3">
                         <div wire:click="$set('es_socio', false)" class="cursor-pointer rounded-xl px-3 py-3 text-center transition-all"
                              :class="!socio ? 'border-2 border-orange-400 bg-orange-50 text-orange-700' : 'border border-gray-200 bg-white text-gray-500'">
