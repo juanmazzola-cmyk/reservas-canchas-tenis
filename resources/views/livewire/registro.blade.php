@@ -122,7 +122,7 @@
 
                     <!-- Número de socio (solo visible si es socio) -->
                     <div x-show="socio" x-transition style="display:none" class="mt-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Número de socio <span class="text-gray-400 font-normal">(opcional)</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Número de socio del club <span class="text-gray-400 font-normal">(opcional)</span></label>
                         <input
                             type="text"
                             inputmode="numeric"
