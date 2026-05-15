@@ -255,11 +255,21 @@
 
             @if($rol === 'admin')
                 {{-- Usuarios --}}
+                @php
+                    $sociosNuevos = auth()->user()->unreadNotifications()->where('type', \App\Notifications\SocioRegistrado::class)->count();
+                @endphp
                 <a href="{{ route('admin.usuarios') }}" wire:navigate
                    class="flex flex-col items-center gap-0.5 text-xs px-2 py-1 rounded transition-colors {{ request()->routeIs('admin.usuarios') ? 'text-yellow-300 font-semibold' : 'text-gray-900 opacity-80 hover:opacity-100' }}">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
+                    <div class="relative">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        @if($sociosNuevos > 0)
+                            <span class="absolute -top-1.5 -right-2 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 leading-none">
+                                {{ $sociosNuevos }}
+                            </span>
+                        @endif
+                    </div>
                     <span>Usuarios</span>
                 </a>
                 {{-- Configuracion --}}

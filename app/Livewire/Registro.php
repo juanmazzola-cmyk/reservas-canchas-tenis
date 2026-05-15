@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\User;
+use App\Notifications\SocioRegistrado;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
@@ -62,6 +63,12 @@ class Registro extends Component
             'nro_socio' => $this->es_socio ? trim($this->nro_socio) : null,
             'rol'       => 'usuario',
         ]);
+
+        if ($user->es_socio) {
+            User::where('rol', 'admin')->each(
+                fn($admin) => $admin->notify(new SocioRegistrado($user))
+            );
+        }
 
         Auth::login($user);
         session()->regenerate();

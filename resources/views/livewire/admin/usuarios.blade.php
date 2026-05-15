@@ -21,6 +21,32 @@
         </div>
     </div>
 
+    {{-- Panel socios nuevos --}}
+    @if(count($sociosNuevos) > 0)
+    <div class="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-2">
+            <p class="text-sm font-semibold text-blue-800">
+                🆕 {{ count($sociosNuevos) === 1 ? 'Nuevo socio registrado' : count($sociosNuevos) . ' nuevos socios registrados' }}
+            </p>
+            <button wire:click="marcarSociosVistos" class="text-xs text-blue-600 hover:text-blue-800 font-medium underline">
+                Marcar como visto
+            </button>
+        </div>
+        <ul class="divide-y divide-blue-100">
+            @foreach($sociosNuevos as $socio)
+            <li class="py-1.5 flex items-center justify-between text-sm text-blue-900">
+                <span class="font-medium">{{ $socio['nombre'] }}</span>
+                @if($socio['nro_socio'])
+                    <span class="text-blue-600 text-xs">Nro socio: {{ $socio['nro_socio'] }}</span>
+                @else
+                    <span class="text-blue-400 text-xs italic">Sin número de socio</span>
+                @endif
+            </li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     {{-- Buscador --}}
     <div class="relative mb-3">
         <input

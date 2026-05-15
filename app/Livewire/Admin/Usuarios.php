@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use App\Models\User;
 use App\Exports\UsuariosExport;
+use App\Notifications\SocioRegistrado;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -16,6 +17,7 @@ class Usuarios extends Component
     public string $busqueda    = '';
     public string $filtroSocio = 'todos'; // todos | socio | no_socio
     public array  $usuarios    = [];
+    public array  $sociosNuevos = [];
 
     // Modal editar
     public bool $modalEditar = false;
@@ -37,6 +39,26 @@ class Usuarios extends Component
     public function mount(): void
     {
         $this->cargarUsuarios();
+        $this->cargarSociosNuevos();
+    }
+
+    public function cargarSociosNuevos(): void
+    {
+        $this->sociosNuevos = auth()->user()
+            ->unreadNotifications()
+            ->where('type', SocioRegistrado::class)
+            ->get()
+            ->map(fn($n) => $n->data)
+            ->toArray();
+    }
+
+    public function marcarSociosVistos(): void
+    {
+        auth()->user()
+            ->unreadNotifications()
+            ->where('type', SocioRegistrado::class)
+            ->update(['read_at' => now()]);
+        $this->sociosNuevos = [];
     }
 
     public function updatedBusqueda(): void
