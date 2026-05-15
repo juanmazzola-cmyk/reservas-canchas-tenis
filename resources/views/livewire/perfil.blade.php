@@ -44,7 +44,7 @@
 
                 @if(auth()->user()->es_socio)
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Número de socio</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Número de socio del club</label>
                     <div class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-sm flex items-center justify-between">
                         @if(auth()->user()->nro_socio)
                             <span class="font-semibold text-gray-700">{{ auth()->user()->nro_socio }}</span>
