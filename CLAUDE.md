@@ -31,7 +31,7 @@ When running under XAMPP (no `php artisan serve`), Apache serves from `public/` 
 
 ## Architecture
 
-**Stack:** Laravel 12 + Livewire 4 + Tailwind CSS 4 + Alpine.js + SQLite
+**Stack:** Laravel 12 + Livewire 4 + Tailwind CSS 4 + Alpine.js + SQLite (localhost) / MySQL (producción)
 
 This is a tennis court reservation system for a club. All UI is built with **Livewire components** — there are no traditional controllers for page rendering (only route → Livewire component full-page). The app is mobile-first and installable as a PWA.
 
@@ -58,6 +58,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 | `Admin/Configuracion.php` | System config (prices, courts, MP credentials, etc.) |
 | `Admin/Estadisticas.php` | Statistics + Excel export |
 | `Admin/Comprobantes.php` | AI-powered receipt verification queue |
+| `NavBadge.php` | Badge en nav del admin (reservas pendientes de pago + socios nuevos) |
 
 ### Payment System
 
@@ -77,10 +78,26 @@ Payment states on `Reserva`: `PENDIENTE`, `PENDIENTE_REVISION`, `AUTORIZADO`, `P
 - **Configuracion**: key-value store for all system settings (retrieved via `Configuracion::get('key')`)
 - **Bloqueo**: court blocks with `MotivoBloqueo` enum
 - **Cancha**: courts (nombre, activa)
+- **Notification** (Laravel built-in): notificaciones en app para admins. Actualmente: `SocioRegistrado` — se dispara cuando un usuario se registra como socio de tenis. Se muestra como badge en el ícono "Usuarios" del nav y como panel en `Admin/Usuarios`.
 
 ### Database
 
-SQLite at `database/database.sqlite`. Migrations in `database/migrations/`. No seeders needed for production — configuration is managed via admin UI.
+- **Localhost:** SQLite en `database/database.sqlite`
+- **Producción:** MySQL en DonWeb
+
+Migrations en `database/migrations/`. No seeders para producción — configuración vía admin UI.
+
+**Regla importante:** toda migración que use `Schema::table` para agregar columnas debe incluir un guard `Schema::hasColumn()` antes de ejecutar el cambio. Esto es necesario porque la BD de producción puede tener columnas aplicadas manualmente que el sistema de migraciones no registró.
+
+```php
+if (!Schema::hasColumn('tabla', 'columna')) {
+    Schema::table('tabla', function (Blueprint $table) {
+        // ...
+    });
+}
+```
+
+**Correr migraciones en producción:** DonWeb no tiene terminal. Se usa un script PHP temporal en `public/` protegido por token, se accede por navegador, y se borra después. Ver historial de commits para el patrón.
 
 ### Frontend
 
