@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -8,9 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('reservas', function (Blueprint $table) {
-            $table->json('invitados')->nullable()->after('jugadores_ids');
-        });
+        if (!Schema::hasColumn('reservas', 'invitados')) {
+            Schema::table('reservas', function (Blueprint $table) {
+                $table->json('invitados')->nullable()->after('jugadores_ids');
+            });
+        }
     }
 
     public function down(): void

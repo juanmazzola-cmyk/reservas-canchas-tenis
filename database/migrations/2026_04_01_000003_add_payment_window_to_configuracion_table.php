@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -8,9 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('configuracion', function (Blueprint $table) {
-            $table->unsignedSmallInteger('payment_window_minutes')->default(30)->after('advance_booking_limit_hours');
-        });
+        if (!Schema::hasColumn('configuracion', 'payment_window_minutes')) {
+            Schema::table('configuracion', function (Blueprint $table) {
+                $table->unsignedSmallInteger('payment_window_minutes')->default(30)->after('advance_booking_limit_hours');
+            });
+        }
     }
 
     public function down(): void

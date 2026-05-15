@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -8,10 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('configuracion', function (Blueprint $table) {
-            $table->decimal('club_lat', 10, 7)->nullable()->after('club_address');
-            $table->decimal('club_lng', 10, 7)->nullable()->after('club_lat');
-        });
+        if (!Schema::hasColumn('configuracion', 'club_lat')) {
+            Schema::table('configuracion', function (Blueprint $table) {
+                $table->decimal('club_lat', 10, 7)->nullable()->after('club_address');
+                $table->decimal('club_lng', 10, 7)->nullable()->after('club_lat');
+            });
+        }
     }
 
     public function down(): void

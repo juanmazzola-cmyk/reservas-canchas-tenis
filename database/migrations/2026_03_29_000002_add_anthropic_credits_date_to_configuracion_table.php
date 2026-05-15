@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -8,9 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('configuracion', function (Blueprint $table) {
-            $table->date('anthropic_credits_date')->nullable()->after('mp_public_key');
-        });
+        if (!Schema::hasColumn('configuracion', 'anthropic_credits_date')) {
+            Schema::table('configuracion', function (Blueprint $table) {
+                $table->date('anthropic_credits_date')->nullable()->after('mp_public_key');
+            });
+        }
     }
 
     public function down(): void
