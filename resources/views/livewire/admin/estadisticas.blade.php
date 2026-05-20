@@ -82,29 +82,68 @@
         @endif
     </div>
 
-    {{-- Ranking jugadores --}}
+    {{-- Pagos del período --}}
     <div class="bg-white rounded-2xl shadow-sm p-4">
-        <p class="text-sm font-semibold text-gray-700 mb-3">Reservas por jugador</p>
-        @if(empty($jugadoresTop))
+        <p class="text-sm font-semibold text-gray-700 mb-3">Pagos del período</p>
+
+        {{-- Total autorizado --}}
+        <div class="bg-green-50 border border-green-100 rounded-xl p-3 mb-3">
+            <p class="text-xs text-green-700 uppercase font-medium">Total autorizado</p>
+            <p class="text-2xl font-bold text-green-700 mt-0.5">${{ number_format($montoAutorizado, 0, ',', '.') }}</p>
+        </div>
+
+        {{-- Pendiente revisión --}}
+        @if($montoPendienteRevision > 0)
+        <div class="bg-yellow-50 border border-yellow-100 rounded-xl p-3 mb-3">
+            <p class="text-xs text-yellow-700 uppercase font-medium">Pendiente de revisión</p>
+            <p class="text-xl font-bold text-yellow-700 mt-0.5">${{ number_format($montoPendienteRevision, 0, ',', '.') }}</p>
+        </div>
+        @endif
+
+        {{-- Desglose --}}
+        <div class="grid grid-cols-2 gap-2">
+            <div class="bg-gray-50 rounded-xl p-3">
+                <p class="text-[10px] text-gray-500 uppercase font-medium leading-tight">No socios<br>sin invitados</p>
+                <p class="text-xl font-bold text-gray-800 mt-1">${{ number_format($montoNoSocios, 0, ',', '.') }}</p>
+            </div>
+            <div class="bg-orange-50 border border-orange-100 rounded-xl p-3">
+                <p class="text-[10px] text-orange-600 uppercase font-medium leading-tight">Con<br>invitados</p>
+                <p class="text-xl font-bold text-orange-600 mt-1">${{ number_format($montoConInvitados, 0, ',', '.') }}</p>
+                @if($cantInvitados > 0)
+                <p class="text-[10px] text-orange-400 mt-0.5">{{ $cantInvitados }} {{ $cantInvitados === 1 ? 'invitado' : 'invitados' }}</p>
+                @endif
+            </div>
+        </div>
+
+        @if($montoAutorizado === 0.0 && $montoPendienteRevision === 0.0)
+            <p class="text-sm text-gray-400 text-center py-2 mt-2">Sin pagos en este período.</p>
+        @endif
+    </div>
+
+    {{-- Estadísticas por cancha --}}
+    <div class="bg-white rounded-2xl shadow-sm p-4">
+        <p class="text-sm font-semibold text-gray-700 mb-3">Uso por cancha</p>
+        @php $maxCancha = collect($estadisticasCanchas)->max('total'); @endphp
+        @if($maxCancha === 0)
             <p class="text-sm text-gray-400 text-center py-4">Sin reservas en este período.</p>
         @else
-            <div class="space-y-2">
-                @foreach($jugadoresTop as $i => $j)
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-bold text-gray-400 w-5 text-right">{{ $i + 1 }}</span>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-800 truncate">{{ $j['nombre'] }}</p>
-                        <span class="text-[10px] {{ $j['es_socio'] ? 'text-green-600' : 'text-orange-500' }}">
-                            {{ $j['es_socio'] ? 'Socio' : 'No socio' }}
-                        </span>
+            <div class="space-y-4">
+                @foreach($estadisticasCanchas as $c)
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-700">{{ $c['nombre'] }}</span>
+                        <span class="text-sm font-bold text-gray-800">{{ $c['total'] }} {{ $c['total'] === 1 ? 'turno' : 'turnos' }}</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        @php $max = $jugadoresTop[0]['reservas']; @endphp
-                        <div class="w-20 bg-gray-100 rounded-full h-1.5">
-                            <div class="bg-terracota h-1.5 rounded-full" style="width: {{ round(($j['reservas'] / $max) * 100) }}%"></div>
-                        </div>
-                        <span class="text-sm font-bold text-gray-700 w-6 text-right">{{ $j['reservas'] }}</span>
+                    <div class="w-full bg-gray-100 rounded-full h-2 mb-2">
+                        <div class="bg-terracota h-2 rounded-full transition-all" style="width: {{ round(($c['total'] / $maxCancha) * 100) }}%"></div>
                     </div>
+                    @if(!empty($c['horas']))
+                    <div class="flex flex-wrap gap-1">
+                        @foreach($c['horas'] as $hora => $cant)
+                        <span class="text-[10px] bg-gray-100 text-gray-600 rounded-md px-1.5 py-0.5">{{ $hora }} <span class="font-bold text-gray-800">×{{ $cant }}</span></span>
+                        @endforeach
+                    </div>
+                    @endif
                 </div>
                 @endforeach
             </div>

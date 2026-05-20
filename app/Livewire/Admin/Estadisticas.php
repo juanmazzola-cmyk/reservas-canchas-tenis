@@ -3,7 +3,9 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use App\Models\Configuracion;
 use App\Models\Reserva;
+use App\Models\Pago;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -18,7 +20,14 @@ class Estadisticas extends Component
     public int $totalSocios = 0;
     public int $totalNoSocios = 0;
     public int $totalUsuarios = 0;
-    public array $jugadoresTop = [];
+
+    public float $montoAutorizado = 0.0;
+    public float $montoPendienteRevision = 0.0;
+    public float $montoNoSocios = 0.0;
+    public float $montoConInvitados = 0.0;
+    public int   $cantInvitados = 0;
+
+    public array $estadisticasCanchas = [];
 
     public function mount(): void
     {
@@ -46,25 +55,39 @@ class Estadisticas extends Component
         $this->totalNoSocios = User::where('es_socio', false)->where('rol', '!=', 'admin')->count();
         $this->totalUsuarios = $this->totalSocios + $this->totalNoSocios;
 
-        // Ranking de jugadores: contar apariciones en jugadores_ids
-        $conteo = [];
-        foreach ($reservas as $r) {
-            foreach ($r->jugadores_ids ?? [] as $uid) {
-                $conteo[$uid] = ($conteo[$uid] ?? 0) + 1;
+        // Pagos del período
+        $reservaIds = $reservas->pluck('id');
+
+        $pagos = Pago::whereIn('reserva_id', $reservaIds)
+            ->with('reserva')
+            ->get();
+
+        $autorizados = $pagos->where('estado', 'AUTHORIZED');
+
+        $this->montoAutorizado           = (float) $autorizados->sum('monto');
+        $this->montoPendienteRevision    = (float) $pagos->where('estado', 'PENDING_REVIEW')->sum('monto');
+        $this->montoNoSocios             = (float) $autorizados->filter(fn($p) => empty($p->reserva->invitados))->sum('monto');
+        $this->montoConInvitados         = (float) $autorizados->filter(fn($p) => !empty($p->reserva->invitados))->sum('monto');
+        $this->cantInvitados             = $reservas->sum(fn($r) => count($r->invitados ?? []));
+
+        // Estadísticas por cancha
+        $config      = Configuracion::getConfig();
+        $courtCount  = (int) ($config->court_count ?? 4);
+        $canchaNames = $config->cancha_names ?? [];
+
+        $this->estadisticasCanchas = [];
+        for ($i = 1; $i <= $courtCount; $i++) {
+            $reservasCancha = $reservas->where('cancha_id', $i);
+            $horasConteo = [];
+            foreach ($reservasCancha as $r) {
+                $horasConteo[$r->hora] = ($horasConteo[$r->hora] ?? 0) + 1;
             }
-        }
-        arsort($conteo);
+            arsort($horasConteo);
 
-        $usuarios = User::whereIn('id', array_keys($conteo))->get()->keyBy('id');
-
-        $this->jugadoresTop = [];
-        foreach ($conteo as $uid => $cant) {
-            if (!isset($usuarios[$uid])) continue;
-            $u = $usuarios[$uid];
-            $this->jugadoresTop[] = [
-                'nombre'   => $u->nombre . ' ' . $u->apellido,
-                'es_socio' => $u->es_socio,
-                'reservas' => $cant,
+            $this->estadisticasCanchas[] = [
+                'nombre' => $canchaNames[$i - 1] ?? "Cancha $i",
+                'total'  => $reservasCancha->count(),
+                'horas'  => array_slice($horasConteo, 0, 5, true),
             ];
         }
     }
