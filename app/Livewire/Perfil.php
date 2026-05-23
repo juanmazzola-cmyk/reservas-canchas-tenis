@@ -15,6 +15,7 @@ class Perfil extends Component
     public string $dni = '';
     public string $telefono = '';
     public string $email = '';
+    public string $grupo_sanguineo = '';
 
     public string $passwordActual = '';
     public string $passwordNuevo = '';
@@ -32,7 +33,8 @@ class Perfil extends Component
         $this->apellido = $user->apellido;
         $this->dni      = $user->dni ?? '';
         $this->telefono = $user->telefono ?? '';
-        $this->email    = $user->email;
+        $this->email          = $user->email;
+        $this->grupo_sanguineo = $user->grupo_sanguineo ?? '';
     }
 
     public function guardarPerfil(): void
@@ -60,7 +62,8 @@ class Perfil extends Component
             'apellido' => trim($this->apellido),
             'dni'      => trim($this->dni),
             'telefono' => trim($this->telefono),
-            'email'    => strtolower(trim($this->email)),
+            'email'          => strtolower(trim($this->email)),
+            'grupo_sanguineo' => $this->grupo_sanguineo ?: null,
         ]);
 
         $this->dispatch('toast', message: 'Perfil actualizado correctamente.', type: 'success');

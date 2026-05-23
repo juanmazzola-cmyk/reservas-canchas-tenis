@@ -21,6 +21,7 @@ class User extends Authenticatable
         'nro_socio',
         'rol',
         'must_change_password',
+        'grupo_sanguineo',
     ];
 
     protected $hidden = [

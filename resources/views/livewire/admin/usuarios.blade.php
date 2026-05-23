@@ -118,6 +118,11 @@
                     <span class="text-[11px] px-2 py-0.5 rounded-full {{ $u['es_socio'] ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700' }}">
                         {{ $u['es_socio'] ? '✓ Socio' : 'No socio' }}
                     </span>
+                    @if($u['grupo_sanguineo'])
+                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">
+                        🩸 {{ $u['grupo_sanguineo'] }}
+                    </span>
+                    @endif
                 </div>
             </div>
 
@@ -206,6 +211,21 @@
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#16a34a]"/>
                 </div>
                 @endif
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Grupo sanguíneo <span class="text-gray-400 font-normal">(opcional)</span></label>
+                    <select wire:model="editGrupoSanguineo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] bg-white">
+                        <option value="">No sé / Prefiero no indicar</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Nueva contraseña (dejar vacío para no cambiar)</label>

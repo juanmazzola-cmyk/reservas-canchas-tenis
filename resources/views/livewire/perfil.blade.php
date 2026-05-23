@@ -12,9 +12,9 @@
                 <div class="flex gap-2 mt-1">
                     <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full capitalize">{{ auth()->user()->rol }}</span>
                     @if(auth()->user()->es_socio)
-                        <span class="text-xs bg-green-400/30 px-2 py-0.5 rounded-full">✓ Socio</span>
+                        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Socio tenis</span>
                     @else
-                        <span class="text-xs bg-orange-400/30 px-2 py-0.5 rounded-full">No socio</span>
+                        <span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">No socio tenis</span>
                     @endif
                 </div>
             </div>
@@ -61,6 +61,24 @@
                         <span class="bg-gray-100 border-r border-gray-300 px-3 py-2 text-sm text-gray-500 font-medium select-none">+54</span>
                         <input type="tel" wire:model="telefono" placeholder="1123456789 (sin 0, sin 15)" class="flex-1 px-3 py-2 text-sm focus:outline-none"/>
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Grupo sanguíneo <span class="text-gray-400 font-normal">(opcional)</span></label>
+                    <select
+                        wire:model="grupo_sanguineo"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] bg-white"
+                    >
+                        <option value="">No sé / Prefiero no indicar</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
                 </div>
 
                 <div>

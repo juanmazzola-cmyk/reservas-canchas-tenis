@@ -18,6 +18,13 @@
             }
         }
     </script>
+    <style>
+        /* oculta el botón nativo de mostrar contraseña en Edge/Chrome */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear { display: none; }
+        input[type="password"]::-webkit-credentials-auto-fill-button { visibility: hidden; }
+
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 

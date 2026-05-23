@@ -29,8 +29,9 @@ class Usuarios extends Component
     public string $editTelefono = '';
     public string $editRol = 'usuario';
     public bool   $editEsSocio   = false;
-    public string $editNroSocio  = '';
-    public string $editPassword  = '';
+    public string $editNroSocio       = '';
+    public string $editGrupoSanguineo = '';
+    public string $editPassword       = '';
 
     // Modal eliminar
     public bool $modalEliminar = false;
@@ -104,9 +105,10 @@ class Usuarios extends Component
         $this->editEmail    = $user->email;
         $this->editTelefono = $user->telefono ?? '';
         $this->editRol      = $user->rol;
-        $this->editEsSocio  = $user->es_socio;
-        $this->editNroSocio = $user->nro_socio ?? '';
-        $this->editPassword = '';
+        $this->editEsSocio       = $user->es_socio;
+        $this->editNroSocio      = $user->nro_socio ?? '';
+        $this->editGrupoSanguineo = $user->grupo_sanguineo ?? '';
+        $this->editPassword      = '';
         $this->modalEditar  = true;
     }
 
@@ -144,7 +146,8 @@ class Usuarios extends Component
             'telefono' => trim($this->editTelefono),
             'rol'      => $this->editRol,
             'es_socio'  => $this->editEsSocio,
-            'nro_socio' => $this->editEsSocio ? (trim($this->editNroSocio) ?: null) : null,
+            'nro_socio'       => $this->editEsSocio ? (trim($this->editNroSocio) ?: null) : null,
+            'grupo_sanguineo' => $this->editGrupoSanguineo ?: null,
         ];
 
         if (!empty($this->editPassword)) {

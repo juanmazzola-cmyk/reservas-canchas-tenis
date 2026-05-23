@@ -402,9 +402,14 @@
                         wire:click="agregarJugador({{ $r['id'] }})"
                         class="w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 flex items-center justify-between transition-colors">
                         <span class="font-medium text-gray-800">{{ $r['nombre'] }} {{ $r['apellido'] }}</span>
-                        <span class="text-xs {{ $r['es_socio'] ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-orange-50' }} px-2 py-0.5 rounded-full">
-                            {{ $r['es_socio'] ? 'Socio' : 'No socio' }}
-                        </span>
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            @if($r['grupo_sanguineo'])
+                            <span class="text-xs bg-red-50 text-red-700 font-semibold px-2 py-0.5 rounded-full">{{ $r['grupo_sanguineo'] }}</span>
+                            @endif
+                            <span class="text-xs {{ $r['es_socio'] ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-orange-50' }} px-2 py-0.5 rounded-full">
+                                {{ $r['es_socio'] ? 'Socio' : 'No socio' }}
+                            </span>
+                        </div>
                     </button>
                     @endforeach
                 </div>

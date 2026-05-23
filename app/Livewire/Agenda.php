@@ -360,7 +360,7 @@ class Agenda extends Component
             })
             ->whereNotIn('id', $idsSeleccionados)
             ->limit(5)
-            ->get(['id', 'nombre', 'apellido', 'es_socio'])
+            ->get(['id', 'nombre', 'apellido', 'es_socio', 'grupo_sanguineo'])
             ->toArray();
     }
 

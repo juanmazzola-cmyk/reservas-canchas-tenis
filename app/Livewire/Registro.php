@@ -16,8 +16,9 @@ class Registro extends Component
     public string $telefono = '';
     public string $email = '';
     public string $password = '';
-    public bool   $es_socio  = false;
-    public string $nro_socio = '';
+    public bool   $es_socio       = false;
+    public string $nro_socio      = '';
+    public string $grupo_sanguineo = '';
 
     protected function rules(): array
     {
@@ -59,9 +60,10 @@ class Registro extends Component
             'telefono'  => trim($this->telefono),
             'email'     => strtolower(trim($this->email)),
             'password'  => Hash::make($this->password),
-            'es_socio'  => $this->es_socio,
-            'nro_socio' => $this->es_socio ? trim($this->nro_socio) : null,
-            'rol'       => 'usuario',
+            'es_socio'       => $this->es_socio,
+            'nro_socio'      => $this->es_socio ? trim($this->nro_socio) : null,
+            'grupo_sanguineo' => $this->grupo_sanguineo ?: null,
+            'rol'            => 'usuario',
         ]);
 
         if ($user->es_socio) {

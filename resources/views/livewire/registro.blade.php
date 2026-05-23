@@ -104,6 +104,25 @@
                     @error('password') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                <!-- Grupo sanguíneo -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Grupo sanguíneo <span class="text-gray-400 font-normal">(opcional)</span></label>
+                    <select
+                        wire:model="grupo_sanguineo"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] bg-white"
+                    >
+                        <option value="">No sé / Prefiero no indicar</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+
                 <!-- Es Socio -->
                 <div x-data="{ socio: @entangle('es_socio') }">
                     <p class="text-sm font-medium text-gray-700 mb-2">¿Sos socio de tenis?</p>
