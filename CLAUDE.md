@@ -59,7 +59,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 | `EscanearCarnet.php` | QR scanner for `control`/`admin` roles. Uses `html5-qrcode` CDN. **Requires HTTPS** — camera blocked on plain HTTP. |
 | `Admin/Usuarios.php` | User management |
 | `Admin/Configuracion.php` | System config (prices, courts, MP credentials, etc.) |
-| `Admin/Estadisticas.php` | Statistics: reservas del período, usuarios, pagos autorizados (desglose no-socios / con invitados), uso por cancha con top horarios |
+| `Admin/Estadisticas.php` | Statistics: reservas del período, usuarios, pagos autorizados (desglose no-socios / con invitados), uso por cancha con top horarios. Filtra por el mes del turno (campo `dia`), no por `created_at`. |
 | `Admin/Comprobantes.php` | AI-powered receipt verification queue |
 | `NavBadge.php` | Badge en nav del admin (reservas pendientes de pago + socios nuevos) |
 
@@ -67,7 +67,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 
 Two payment paths:
 1. **MercadoPago**: Creates preference → redirects to MP → callback to `/pago/mp/success|failure|pending` → updates `reservas.estado_pago`
-2. **Bank transfer**: User uploads receipt image/PDF → `ComprobanteVerificador` service calls Anthropic Claude API to verify amount/timestamp/account → admin reviews in `/admin/comprobantes`
+2. **Bank transfer**: User uploads receipt image/PDF → `ComprobanteVerificador` service calls Anthropic Claude API to verify amount/timestamp/account → admin reviews in `/admin/comprobantes`. Verification result stored in `Pago.verificacion_ia` (not in `Reserva`). `fecha_ok` y `hora_ok` son permisivos (null = aceptado) porque algunos bancos como BNA+ no muestran fecha/hora en el PDF.
 
 States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`. States on `Pago.estado`: `PENDIENTE`, `AUTHORIZED`, `PENDING_REVIEW`. `Reserva.esta_pagado` is a boolean shortcut.
 
@@ -78,7 +78,7 @@ States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`. States on `Pago.es
 - **User**: roles, WhatsApp (stored without 0/15 prefix, displayed with +54), `forzar_cambio_password`, `es_socio`, `nro_socio`, `grupo_sanguineo` (nullable, optional — A+/A-/B+/B-/AB+/AB-/O+/O-), `foto_carnet` (nullable, path in `storage/public/fotos-carnet/`)
 - **Reserva**: `cancha_id` (integer), `jugadores_ids` (array of user IDs), `invitados` (array of `{slot, apellido}` for non-registered guests), `creador_id`, `esta_pagado`, `estado`, MP fields
 - **Pago**: `reserva_id`, `user_id`, `monto`, `estado`. When a reserva has invitados, ONE Pago is created for the creator covering all non-socios + guests. Without invitados, one Pago per non-socio.
-- **Configuracion**: single-row config table, retrieved via `Configuracion::getConfig()`. Key fields: `court_count`, `cancha_names` (array), `slots` (array of time strings), `non_member_price`
+- **Configuracion**: single-row config table, retrieved via `Configuracion::getConfig()`. Key fields: `court_count`, `cancha_names` (array), `slots` (array of time strings), `non_member_price`, `carnet_enabled` (boolean, habilita/deshabilita el sistema de carnets)
 - **Bloqueo**: court blocks with `MotivoBloqueo` enum
 - **Notification** (Laravel built-in): notificaciones en app para admins. Actualmente: `SocioRegistrado` — se dispara cuando un usuario se registra como socio de tenis. Se muestra como badge en el ícono "Usuarios" del nav y como panel en `Admin/Usuarios`.
 
@@ -99,7 +99,9 @@ if (!Schema::hasColumn('tabla', 'columna')) {
 }
 ```
 
-**Correr migraciones en producción:** DonWeb no tiene terminal. Se usa un script PHP temporal en `public/` protegido por token, se accede por navegador, y se borra después. Ver historial de commits para el patrón.
+**Correr migraciones en producción:** DonWeb no tiene terminal. Se usa un script PHP temporal en `public/` que lee el `.env` directamente y ejecuta el `ALTER TABLE` con PDO. Se accede por navegador y se borra con un commit inmediato. Ver historial de commits para el patrón exacto (`migrar-*.php`).
+
+**Limpiar caché en producción:** Si hay errores de "ruta no definida" tras un deploy, es porque DonWeb tiene caché vieja. Usar script temporal `public/limpiar-cache.php` que corre `route:clear`, `config:clear`, `view:clear` vía Artisan. Ver historial de commits para el patrón.
 
 ### Frontend
 
