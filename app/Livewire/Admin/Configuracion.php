@@ -202,8 +202,8 @@ class Configuracion extends Component
 
     private function getStatsVerificacionIA(): array
     {
-        $total         = Reserva::whereNotNull('verificacion_ia')->count();
-        $confirmadas   = Reserva::whereNotNull('verificacion_ia')
+        $total         = \App\Models\Pago::whereNotNull('verificacion_ia')->count();
+        $confirmadas   = \App\Models\Pago::whereNotNull('verificacion_ia')
             ->whereRaw("JSON_EXTRACT(verificacion_ia, '$.valido') = true")
             ->count();
         $revision      = $total - $confirmadas;
