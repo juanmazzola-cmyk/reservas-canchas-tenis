@@ -65,7 +65,7 @@ PRIMERO: determiná si es un comprobante oficial de transferencia bancaria argen
 - Número de operación o CVU/CBU o código de transacción bancaria
 - Importe transferido en pesos
 - Fecha y/o hora de la operación
-- Indicación clara de que es una transferencia completada (palabras como "transferencia realizada", "acreditado", "enviaste", etc.)
+- Indicación clara de que es una transferencia completada (palabras como "transferencia realizada", "acreditado", "enviaste", "Transferencia Inmediata", etc. — en BNA+ el tipo "Transferencia Inmediata" con datos completos de origen y destino indica que fue completada)
 
 NO es un comprobante bancario si es: una conversación de chat, un mensaje de texto, una captura de pantalla de una app que no sea bancaria, un documento de texto, una factura comercial, o cualquier otra cosa que no sea un comprobante oficial de transferencia emitido por una entidad bancaria o billetera virtual (Mercado Pago, Brubank, Ualá, BBVA, Santander, Galicia, Naranja X, Personal Pay, etc.).
 
