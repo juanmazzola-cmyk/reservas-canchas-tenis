@@ -41,10 +41,17 @@ class Estadisticas extends Component
 
     public function cargarEstadisticas(): void
     {
-        $inicio = Carbon::create($this->anio, $this->mes, 1)->startOfMonth();
-        $fin    = Carbon::create($this->anio, $this->mes, 1)->endOfMonth();
+        // Filtrar por el mes del turno (campo `dia` = "lun 02 jun"), no por created_at.
+        // Se usa created_at con buffer de ±5 días para acotar la query, luego se filtra por nombre de mes.
+        $mesNombres  = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        $mesNombre   = $mesNombres[$this->mes];
+        $inicioCarga = Carbon::create($this->anio, $this->mes, 1)->subDays(5);
+        $finCarga    = Carbon::create($this->anio, $this->mes, 1)->endOfMonth();
 
-        $reservas = Reserva::whereBetween('created_at', [$inicio, $fin])->get();
+        $reservas = Reserva::where('estado', '!=', 'DRAFT')
+            ->whereBetween('created_at', [$inicioCarga, $finCarga])
+            ->get()
+            ->filter(fn($r) => (explode(' ', strtolower(trim($r->dia)))[2] ?? '') === $mesNombre);
 
         $this->totalPeriodo   = $reservas->count();
         $this->pendientesPago = $reservas->where('esta_pagado', false)->count();
