@@ -54,6 +54,9 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 | `Agenda.php` | Main reservation calendar — most complex component (~31KB). Handles multi-court/multi-day grid, slot selection, creating/editing reservas. |
 | `MisTurnos.php` | User's upcoming/past reservations |
 | `Pago.php` | Payment screen: MercadoPago flow + bank transfer receipt upload |
+| `Carnet.php` | Membership card for socios: selfie upload, DNI, nro_socio, QR code. Only visible to `es_socio = true`. |
+| `VerificarSocio.php` | Verification screen shown after scanning a socio's QR. Shows photo, name, DNI, nro_socio, validity. |
+| `EscanearCarnet.php` | QR scanner for `control`/`admin` roles. Uses `html5-qrcode` CDN. **Requires HTTPS** — camera blocked on plain HTTP. |
 | `Admin/Usuarios.php` | User management |
 | `Admin/Configuracion.php` | System config (prices, courts, MP credentials, etc.) |
 | `Admin/Estadisticas.php` | Statistics: reservas del período, usuarios, pagos autorizados (desglose no-socios / con invitados), uso por cancha con top horarios |
@@ -72,7 +75,7 @@ States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`. States on `Pago.es
 
 ### Models
 
-- **User**: roles, WhatsApp (stored without 0/15 prefix, displayed with +54), `forzar_cambio_password`, `es_socio`
+- **User**: roles, WhatsApp (stored without 0/15 prefix, displayed with +54), `forzar_cambio_password`, `es_socio`, `nro_socio`, `grupo_sanguineo` (nullable, optional — A+/A-/B+/B-/AB+/AB-/O+/O-), `foto_carnet` (nullable, path in `storage/public/fotos-carnet/`)
 - **Reserva**: `cancha_id` (integer), `jugadores_ids` (array of user IDs), `invitados` (array of `{slot, apellido}` for non-registered guests), `creador_id`, `esta_pagado`, `estado`, MP fields
 - **Pago**: `reserva_id`, `user_id`, `monto`, `estado`. When a reserva has invitados, ONE Pago is created for the creator covering all non-socios + guests. Without invitados, one Pago per non-socio.
 - **Configuracion**: single-row config table, retrieved via `Configuracion::getConfig()`. Key fields: `court_count`, `cancha_names` (array), `slots` (array of time strings), `non_member_price`
@@ -100,10 +103,14 @@ if (!Schema::hasColumn('tabla', 'columna')) {
 
 ### Frontend
 
-- `resources/views/layouts/app.blade.php`: Main layout with bottom nav (role-aware), toast system, PWA install banner, session keep-alive ping every 2 minutes
+- `resources/views/layouts/app.blade.php`: Main layout with bottom nav (role-aware, horizontally scrollable), toast system, PWA install banner, session keep-alive ping every 2 minutes. Includes `@stack('scripts')` before `</body>` for page-specific JS.
 - `resources/views/livewire/`: Blade templates for each component
 - Tailwind 4 configured via `resources/css/app.css` (no `tailwind.config.js` — uses CSS-first config)
 - Alpine.js loaded via CDN in layout head
+- JS libs loaded via CDN in specific views using `@push('scripts')`: `qrcodejs` (carnet QR), `html5-qrcode` (scanner)
+- **Livewire navigate**: scripts in views must listen to `livewire:navigated` (not only `DOMContentLoaded`) to re-initialize after SPA navigation. Scanner must also listen to `livewire:navigate` to stop the camera before leaving the page.
+- **CDN race condition**: when using `@push('scripts')` with a CDN lib + `livewire:navigated`, the lib may not be loaded yet when the event fires. Fix: poll with `setInterval` until `typeof LibName !== 'undefined'` before calling it (see `carnet.blade.php`).
+- **Cámara en localhost**: `getUserMedia` (html5-qrcode) requiere HTTPS. En `http://192.168.x.x` Chrome bloquea la cámara sin mostrar diálogo de permisos. El scanner de carnet solo funciona en producción (`https://ateneo.proyectosia.com.ar`).
 
 ### WhatsApp Links
 

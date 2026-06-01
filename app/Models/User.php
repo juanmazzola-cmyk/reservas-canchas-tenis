@@ -22,6 +22,7 @@ class User extends Authenticatable
         'rol',
         'must_change_password',
         'grupo_sanguineo',
+        'foto_carnet',
     ];
 
     protected $hidden = [

@@ -28,6 +28,7 @@ class Configuracion extends Model
         'admin_whatsapp',
         'announcement_text',
         'announcement_enabled',
+        'carnet_enabled',
         'notification_text',
         'mp_access_token',
         'mp_public_key',
@@ -40,6 +41,7 @@ class Configuracion extends Model
             'slots'                  => 'array',
             'cancha_names'           => 'array',
             'announcement_enabled'   => 'boolean',
+            'carnet_enabled'         => 'boolean',
             'non_member_price'       => 'decimal:2',
             'anthropic_credits_date' => 'date',
         ];

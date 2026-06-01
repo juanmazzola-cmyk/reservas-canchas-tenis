@@ -31,6 +31,7 @@ class Configuracion extends Component
     public string $admin_whatsapp = '';
     public string $announcement_text = '';
     public bool $announcement_enabled = false;
+    public bool $carnet_enabled = true;
     public string $notification_text = '';
     public string $mp_access_token = '';
     public string $mp_public_key = '';
@@ -61,6 +62,7 @@ class Configuracion extends Component
         $this->admin_whatsapp               = $config->admin_whatsapp ?? '';
         $this->announcement_text            = $config->announcement_text ?? '';
         $this->announcement_enabled         = $config->announcement_enabled;
+        $this->carnet_enabled               = $config->carnet_enabled ?? true;
         $this->notification_text            = $config->notification_text ?? '';
         $this->mp_access_token              = $config->mp_access_token ?? '';
         $this->mp_public_key                = $config->mp_public_key ?? '';
@@ -188,6 +190,7 @@ class Configuracion extends Component
             'admin_whatsapp'               => $this->admin_whatsapp ?: null,
             'announcement_text'            => $this->announcement_text ?: null,
             'announcement_enabled'         => $this->announcement_enabled,
+            'carnet_enabled'              => $this->carnet_enabled,
             'notification_text'            => $this->notification_text ?: null,
             'mp_access_token'              => $this->mp_access_token ?: null,
             'mp_public_key'                => $this->mp_public_key ?: null,

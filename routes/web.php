@@ -32,6 +32,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/pago/mp/failure', [MercadoPagoController::class, 'failure'])->name('mp.failure');
     Route::get('/pago/mp/pending', [MercadoPagoController::class, 'pending'])->name('mp.pending');
     Route::get('/perfil', \App\Livewire\Perfil::class)->name('perfil');
+    Route::get('/carnet', \App\Livewire\Carnet::class)->name('carnet');
+    Route::get('/verificar/{id}', \App\Livewire\VerificarSocio::class)->name('verificar-socio');
+    Route::get('/escanear', \App\Livewire\EscanearCarnet::class)->name('escanear-carnet');
 
     // Cancela una reserva DRAFT cuando el usuario cierra el browser desde la pantalla de pago
     Route::post('/reserva/{id}/cancelar-draft', function ($id) {

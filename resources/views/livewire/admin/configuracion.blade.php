@@ -220,6 +220,24 @@
             </div>
         </div>
 
+        {{-- Socios --}}
+        <div class="bg-white rounded-2xl shadow-sm p-5">
+            <h3 class="font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">Socios</h3>
+            <div class="flex items-center gap-3 bg-blue-50 rounded-lg px-4 py-3">
+                <button
+                    type="button"
+                    wire:click="$set('carnet_enabled', {{ $carnet_enabled ? 'false' : 'true' }})"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {{ $carnet_enabled ? 'bg-[#0057a8]' : 'bg-gray-200' }}"
+                >
+                    <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform {{ $carnet_enabled ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                </button>
+                <label class="text-sm text-gray-700">
+                    Carnet de socio activo
+                    <span class="text-xs text-gray-500 block">Habilita el carnet digital y el escáner QR en la app</span>
+                </label>
+            </div>
+        </div>
+
     </form>
 
     {{-- Bloquear días completos --}}
