@@ -141,7 +141,7 @@ PROMPT;
             // Confirmación automática: fecha + hora + importe + alias/CBU/CUIT encontrado y correcto
             $valido = $esComprobante === true
                 && $importeOk === true
-                && $fechaOk  === true
+                && $fechaOk  !== false   // si no aparece fecha, se acepta (ej: BNA+ no la muestra)
                 && $horaOk   !== false   // si no aparece hora, se acepta
                 && $aliasOk  === true;   // debe aparecer y coincidir
 
