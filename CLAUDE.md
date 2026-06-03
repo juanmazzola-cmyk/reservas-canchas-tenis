@@ -31,7 +31,7 @@ When running under XAMPP (no `php artisan serve`), Apache serves from `public/` 
 
 ## Architecture
 
-**Stack:** Laravel 12 + Livewire 4 + Tailwind CSS 4 + Alpine.js + SQLite (localhost) / MySQL (producción)
+**Stack:** Laravel 12 + Livewire 4 + Tailwind CSS 4 + Alpine.js + MySQL (localhost y producción)
 
 This is a tennis court reservation system for a club. All UI is built with **Livewire components** — there are no traditional controllers for page rendering (only route → Livewire component full-page). The app is mobile-first and installable as a PWA.
 
@@ -52,7 +52,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 | Component | Purpose |
 |-----------|---------|
 | `Agenda.php` | Main reservation calendar — most complex component (~31KB). Handles multi-court/multi-day grid, slot selection, creating/editing reservas. |
-| `MisTurnos.php` | User's upcoming/past reservations |
+| `MisTurnos.php` | User's upcoming/past reservations. Solo el `creador_id` puede cancelar o reprogramar — los otros jugadores de la reserva no tienen esa opción. |
 | `Pago.php` | Payment screen: MercadoPago flow + bank transfer receipt upload |
 | `Carnet.php` | Membership card for socios: selfie upload, DNI, nro_socio, QR code. Only visible to `es_socio = true`. |
 | `VerificarSocio.php` | Verification screen shown after scanning a socio's QR. Shows photo, name, DNI, nro_socio, validity. |
@@ -84,7 +84,7 @@ States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`. States on `Pago.es
 
 ### Database
 
-- **Localhost:** SQLite en `database/database.sqlite`
+- **Localhost:** MySQL en XAMPP (base de datos `liga_padres_tenis`, host 127.0.0.1:3306, user `root` sin password)
 - **Producción:** MySQL en DonWeb
 
 Migrations en `database/migrations/`. No seeders para producción — configuración vía admin UI.
