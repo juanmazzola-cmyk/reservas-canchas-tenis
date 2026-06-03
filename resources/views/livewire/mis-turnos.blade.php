@@ -104,6 +104,7 @@
                         💰 Pagar mi parte — ${{ number_format($r['mi_pago_monto'], 0, ',', '.') }}
                     </a>
                     @endif
+                    @if($r['creador_id'] === auth()->id())
                     <div class="flex gap-2">
                         <button
                             wire:click="confirmarReprogramar({{ $r['id'] }})"
@@ -120,6 +121,7 @@
                         </button>
                         @endif
                     </div>
+                    @endif
                 </div>
                 @endif
             </div>

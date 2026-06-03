@@ -262,6 +262,9 @@ class MisTurnos extends Component
 
     public function confirmarCancelar(int $reservaId): void
     {
+        $reserva = Reserva::find($reservaId);
+        if (!$reserva || $reserva->creador_id !== Auth::id()) return;
+
         $this->cancelarReservaId = $reservaId;
         $this->modalCancelar = true;
     }
@@ -269,7 +272,7 @@ class MisTurnos extends Component
     public function cancelarReserva(): void
     {
         $reserva = Reserva::find($this->cancelarReservaId);
-        if ($reserva && in_array(Auth::id(), $reserva->jugadores_ids ?? [])) {
+        if ($reserva && $reserva->creador_id === Auth::id()) {
             $reserva->delete();
         }
 
@@ -281,7 +284,7 @@ class MisTurnos extends Component
     public function confirmarReprogramar(int $reservaId): void
     {
         $reserva = Reserva::find($reservaId);
-        if (!$reserva || !in_array(Auth::id(), $reserva->jugadores_ids ?? [])) return;
+        if (!$reserva || $reserva->creador_id !== Auth::id()) return;
 
         $this->reprogramarReservaId = $reservaId;
         $this->reprogramarCancha = $reserva->cancha_id;
