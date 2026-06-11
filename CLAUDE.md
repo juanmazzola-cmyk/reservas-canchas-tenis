@@ -60,7 +60,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 | `Admin/Usuarios.php` | User management |
 | `Admin/Configuracion.php` | System config (prices, courts, MP credentials, etc.) |
 | `Admin/Estadisticas.php` | Statistics: reservas del período, usuarios, pagos autorizados (desglose no-socios / con invitados), uso por cancha con top horarios. Filtra por el mes del turno (campo `dia`), no por `created_at`. |
-| `Admin/Comprobantes.php` | AI-powered receipt verification queue |
+| `Admin/Comprobantes.php` | Receipt verification queue — muestra solo pagos con `estado_autorizacion = 'pendiente_admin'`. El admin autoriza desde la grilla de Agenda (`autorizarPago()`). |
 | `NavBadge.php` | Badge en nav del admin (reservas pendientes de pago + socios nuevos) |
 
 ### Payment System
@@ -69,7 +69,12 @@ Two payment paths:
 1. **MercadoPago**: Creates preference → redirects to MP → callback to `/pago/mp/success|failure|pending` → updates `reservas.estado_pago`
 2. **Bank transfer**: User uploads receipt image/PDF → `ComprobanteVerificador` service calls Anthropic Claude API to verify amount/timestamp/account → admin reviews in `/admin/comprobantes`. Verification result stored in `Pago.verificacion_ia` (not in `Reserva`). `fecha_ok` y `hora_ok` son permisivos (null = aceptado) porque algunos bancos como BNA+ no muestran fecha/hora en el PDF.
 
-States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`. States on `Pago.estado`: `PENDIENTE`, `AUTHORIZED`, `PENDING_REVIEW`. `Reserva.esta_pagado` is a boolean shortcut.
+**Criterios de rechazo en `enviarComprobante()`:**
+- **Hard reject** (borra el archivo, muestra error, el usuario debe reintentar): archivo no es un comprobante bancario válido / importe encontrado pero no coincide / alias/CBU no coincide.
+- **Pendiente admin** (`estado_autorizacion = 'pendiente_admin'`): datos ilegibles — fecha, hora, importe o alias no se pueden leer. La reserva queda guardada y el admin la revisa en `/admin/comprobantes`.
+- **Aprobado IA** (`estado_autorizacion = 'aprobado_ia'`): todo verificado correctamente, pago AUTHORIZED automáticamente.
+
+States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`, `PENDING_REVIEW`, `PARTIAL_PAYMENT`. States on `Pago.estado`: `PENDIENTE`, `AUTHORIZED`, `PENDING_REVIEW`. `Pago.estado_autorizacion`: `aprobado_ia`, `rechazado_ia`, `pendiente_admin`, `aprobado_admin`. `Reserva.esta_pagado` is a boolean shortcut.
 
 `DRAFT` reservations (created when MP flow starts but not completed) are auto-cancelled when the browser session ends.
 
@@ -77,7 +82,7 @@ States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`. States on `Pago.es
 
 - **User**: roles, WhatsApp (stored without 0/15 prefix, displayed with +54), `forzar_cambio_password`, `es_socio`, `nro_socio`, `grupo_sanguineo` (nullable, optional — A+/A-/B+/B-/AB+/AB-/O+/O-), `foto_carnet` (nullable, path in `storage/public/fotos-carnet/`)
 - **Reserva**: `cancha_id` (integer), `jugadores_ids` (array of user IDs), `invitados` (array of `{slot, apellido}` for non-registered guests), `creador_id`, `esta_pagado`, `estado`, MP fields
-- **Pago**: `reserva_id`, `user_id`, `monto`, `estado`. When a reserva has invitados, ONE Pago is created for the creator covering all non-socios + guests. Without invitados, one Pago per non-socio.
+- **Pago**: `reserva_id`, `user_id`, `monto`, `estado`, `estado_autorizacion`, `motivo_rechazo`, `autorizado_por`, `autorizado_at`, `verificacion_ia` (JSON del resultado IA), `comprobante` (path). When a reserva has invitados, ONE Pago is created for the creator covering all non-socios + guests. Without invitados, one Pago per non-socio.
 - **Configuracion**: single-row config table, retrieved via `Configuracion::getConfig()`. Key fields: `court_count`, `cancha_names` (array), `slots` (array of time strings), `non_member_price`, `carnet_enabled` (boolean, habilita/deshabilita el sistema de carnets)
 - **Bloqueo**: court blocks with `MotivoBloqueo` enum
 - **Notification** (Laravel built-in): notificaciones en app para admins. Actualmente: `SocioRegistrado` — se dispara cuando un usuario se registra como socio de tenis. Se muestra como badge en el ícono "Usuarios" del nav y como panel en `Admin/Usuarios`.
