@@ -25,12 +25,13 @@ class Comprobantes extends Component
 
     public function render()
     {
-        // Reservas con al menos un comprobante, que no hayan vencido (dia de hoy en adelante)
-        // Tomamos los pagos con comprobante y filtramos por reservas vigentes
         $pagos = Pago::whereNotNull('comprobante')
+            ->where('estado_autorizacion', 'pendiente_admin')
             ->with(['user', 'reserva'])
             ->orderByDesc('updated_at')
             ->get();
+
+        $cantPendientes = $pagos->count();
 
         // Agrupar por reserva y filtrar reservas que no pasaron aún
         $reservas = $pagos
@@ -47,7 +48,7 @@ class Comprobantes extends Component
             ? Pago::with('user')->find($this->modalPagoId)
             : null;
 
-        return view('livewire.admin.comprobantes', compact('reservas', 'modalPago'));
+        return view('livewire.admin.comprobantes', compact('reservas', 'modalPago', 'cantPendientes'));
     }
 
     private function reservaVencida(Reserva $r): bool

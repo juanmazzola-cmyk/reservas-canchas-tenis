@@ -866,6 +866,14 @@ class Agenda extends Component
         $reserva = Reserva::find($reservaId);
         if ($reserva) {
             $reserva->update(['esta_pagado' => true, 'estado' => 'AUTHORIZED']);
+            Pago::where('reserva_id', $reservaId)
+                ->where('estado_autorizacion', 'pendiente_admin')
+                ->update([
+                    'estado'              => 'AUTHORIZED',
+                    'estado_autorizacion' => 'aprobado_admin',
+                    'autorizado_por'      => Auth::id(),
+                    'autorizado_at'       => now(),
+                ]);
         }
         $this->modalDetalle = false;
         $this->cargarReservasYBloqueos();

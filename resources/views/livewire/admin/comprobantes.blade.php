@@ -1,6 +1,11 @@
 <div class="space-y-4 pb-24">
-    <h2 class="text-xl font-bold text-gray-800">Comprobantes de pago</h2>
-    <p class="text-xs text-gray-500 -mt-2">Reservas vigentes con comprobantes subidos</p>
+    <div class="flex items-center gap-2">
+        <h2 class="text-xl font-bold text-gray-800">Comprobantes de pago</h2>
+        @if($cantPendientes > 0)
+            <span class="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $cantPendientes }}</span>
+        @endif
+    </div>
+    <p class="text-xs text-gray-500 -mt-2">Comprobantes pendientes de autorización</p>
 
     @if($reservas->isEmpty())
     <div class="bg-white rounded-2xl p-8 text-center shadow-sm">

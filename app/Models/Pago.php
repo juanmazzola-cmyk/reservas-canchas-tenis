@@ -15,6 +15,10 @@ class Pago extends Model
         'comprobante',
         'verificacion_ia',
         'estado',
+        'estado_autorizacion',
+        'motivo_rechazo',
+        'autorizado_por',
+        'autorizado_at',
     ];
 
     protected function casts(): array

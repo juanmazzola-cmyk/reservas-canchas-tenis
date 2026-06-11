@@ -72,7 +72,8 @@
                         @php
                             $esInvitado  = $jug['es_invitado'] ?? false;
                             $pagoEstado  = $jug['pago_estado'] ?? null;
-                            $yaPago      = in_array($pagoEstado, ['AUTHORIZED', 'PENDING_REVIEW']);
+                            $autorizado  = $pagoEstado === 'AUTHORIZED';
+                            $enRevision  = $pagoEstado === 'PENDING_REVIEW';
                             $debeAbonar  = !$jug['es_socio'] && !$esInvitado && $pagoEstado === 'PENDIENTE';
                         @endphp
                         <div class="flex items-center gap-1.5 {{ $esInvitado ? 'bg-amber-50' : 'bg-blue-50' }} rounded-full px-3 py-1">
@@ -84,8 +85,10 @@
                                 <span class="text-[10px] text-amber-500">inv.</span>
                             @elseif($jug['es_socio'])
                                 <span class="text-[10px] text-green-600 font-medium">socio</span>
-                            @elseif($yaPago)
+                            @elseif($autorizado)
                                 <span class="text-[10px] text-green-600 font-semibold">pagó ✓</span>
+                            @elseif($enRevision)
+                                <span class="text-[10px] text-amber-600 font-semibold">en revisión</span>
                             @elseif($debeAbonar)
                                 <span class="text-[10px] text-red-500 font-semibold">debe</span>
                             @endif

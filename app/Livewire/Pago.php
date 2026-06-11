@@ -40,10 +40,11 @@ class Pago extends Component
 
     // Subida de comprobante
     public $comprobante;
-    public bool   $enviado      = false;
-    public ?array $verificacion = null;
-    public string $errorImporte = '';
-    public bool   $pagoDemas    = false;
+    public bool   $enviado        = false;
+    public ?array $verificacion   = null;
+    public string $errorImporte   = '';
+    public bool   $pagoDemas      = false;
+    public string $motivoRechazo  = '';
 
     // Datos del turno
     public string $turno_dia    = '';
@@ -121,6 +122,9 @@ class Pago extends Component
             if (in_array($miPago->estado, ['AUTHORIZED', 'PENDING_REVIEW'])) {
                 $this->enviado      = true;
                 $this->verificacion = $miPago->verificacion_ia;
+            }
+            if ($miPago->estado === 'PENDING_REVIEW') {
+                $this->motivoRechazo = $miPago->motivo_rechazo ?? '';
             }
         } else {
             // No tiene pago asignado → es socio o admin visualizando
@@ -239,7 +243,7 @@ class Pago extends Component
             $config->payment_window_minutes ?? 30
         );
 
-        // Rechazar si no es comprobante válido
+        // HARD REJECT: no es un comprobante bancario válido
         if (($verificacion['es_comprobante'] ?? null) !== true) {
             Storage::disk('public')->delete($path);
             $this->errorImporte = "El archivo adjunto no es un comprobante de transferencia bancaria válido o la transferencia no está completada. Por favor adjuntá el comprobante correcto.";
@@ -247,11 +251,10 @@ class Pago extends Component
             return;
         }
 
-        // Analizar importe: acepta pago total O pago parcial (solo su cuota, sin invitados)
         // Normalizar importe argentino: "$ 10.000,00" → 10000.00
         $importeRaw = preg_replace('/[^\d,.]/', '', $verificacion['importe_encontrado'] ?? '0');
-        $importeRaw = str_replace('.', '', $importeRaw);   // eliminar puntos de miles
-        $importeRaw = str_replace(',', '.', $importeRaw);  // coma decimal → punto
+        $importeRaw = str_replace('.', '', $importeRaw);
+        $importeRaw = str_replace(',', '.', $importeRaw);
         $importeNum = (float) $importeRaw;
         $pagoCompleto = ($verificacion['importe_ok'] ?? null) === true;
         $pagoParcial  = !$pagoCompleto
@@ -259,37 +262,19 @@ class Pago extends Component
             && $importeNum > 0
             && abs($importeNum - $miPago->monto) < 1;
 
-        if (!$pagoCompleto && !$pagoParcial) {
+        // HARD REJECT: la IA leyó el importe y no coincide (o se encontró un monto que no cuadra)
+        if (!$pagoCompleto && !$pagoParcial && ($importeNum > 0 || ($verificacion['importe_ok'] ?? null) === false)) {
             Storage::disk('public')->delete($path);
-            $importeEsperado = '$' . number_format($this->totalReserva, 0, ',', '.');
-            $encontrado      = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
+            $importeEsperado    = '$' . number_format($this->totalReserva, 0, ',', '.');
             $importeParteStr    = '$' . number_format($miPago->monto, 0, ',', '.');
+            $encontrado         = $verificacion['importe_encontrado'] ? ' (encontrado: ' . $verificacion['importe_encontrado'] . ')' : '';
             $this->errorImporte = "El importe del comprobante no coincide. Se esperaba {$importeEsperado} (total) o {$importeParteStr} (tu parte){$encontrado}.";
             $this->pagoDemas    = $importeNum > 0 && $importeNum > $this->totalReserva;
             $this->comprobante  = null;
             return;
         }
 
-        // Fecha incorrecta
-        if (($verificacion['fecha_ok'] ?? null) !== true) {
-            Storage::disk('public')->delete($path);
-            $fechaEncontrada    = $verificacion['fecha_encontrada'] ? ' (fecha encontrada: ' . $verificacion['fecha_encontrada'] . ')' : '';
-            $this->errorImporte = "La fecha del comprobante no corresponde al día de la reserva{$fechaEncontrada}. El pago debe realizarse el mismo día.";
-            $this->comprobante  = null;
-            return;
-        }
-
-        // Hora fuera de rango
-        if (($verificacion['hora_ok'] ?? null) === false) {
-            Storage::disk('public')->delete($path);
-            $horaEncontrada     = $verificacion['hora_encontrada'] ? ' (hora encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
-            $ventana = $config->payment_window_minutes ?? 30;
-            $this->errorImporte = "El horario del comprobante está fuera del rango permitido{$horaEncontrada}. El pago debe realizarse al momento de la reserva o hasta {$ventana} minutos antes.";
-            $this->comprobante  = null;
-            return;
-        }
-
-        // Alias/CBU incorrecto
+        // HARD REJECT: la IA leyó el alias/CBU y no coincide
         if (($verificacion['alias_ok'] ?? null) === false) {
             Storage::disk('public')->delete($path);
             $aliasEncontrado    = $verificacion['alias_encontrado'] ? ' (encontrado: ' . $verificacion['alias_encontrado'] . ')' : '';
@@ -300,65 +285,101 @@ class Pago extends Component
 
         $this->errorImporte = '';
 
+        // Construir motivo de rechazo para los casos que van a revisión del admin
+        $motivos = [];
+
+        if (!$pagoCompleto && !$pagoParcial) {
+            // importeNum === 0 y importe_ok no es false: la IA no pudo leer el importe
+            $motivos[] = 'No se pudo verificar el importe del comprobante.';
+        }
+
+        if (($verificacion['fecha_ok'] ?? null) !== true) {
+            if (($verificacion['fecha_ok'] ?? null) === false) {
+                $fechaEncontrada = $verificacion['fecha_encontrada'] ? ' (encontrada: ' . $verificacion['fecha_encontrada'] . ')' : '';
+                $motivos[] = 'La fecha no corresponde al día de la reserva' . $fechaEncontrada . '.';
+            } else {
+                $motivos[] = 'No se pudo leer la fecha del comprobante.';
+            }
+        }
+
+        if (($verificacion['hora_ok'] ?? null) === false) {
+            $ventana         = $config->payment_window_minutes ?? 30;
+            $horaEncontrada  = $verificacion['hora_encontrada'] ? ' (encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
+            $motivos[] = "El horario está fuera del rango permitido (±{$ventana} min){$horaEncontrada}.";
+        }
+
+        if (($verificacion['alias_ok'] ?? null) === null) {
+            $motivos[] = 'No se pudo leer el alias/CBU del comprobante.';
+        }
+
         // Si es pago parcial, recalcular valido ignorando importe_ok
-        // (ya confirmamos que el importe coincide con la cuota individual)
         if ($pagoParcial) {
-            $valido = ($verificacion['es_comprobante'] ?? false) === true
-                && ($verificacion['fecha_ok']  ?? null) === true
+            $valido = ($verificacion['fecha_ok']  ?? null) === true
                 && ($verificacion['hora_ok']   ?? null) !== false
                 && ($verificacion['alias_ok']  ?? null) === true;
         } else {
             $valido = $verificacion['valido'] ?? false;
         }
 
-        $estadoPago = $valido ? 'AUTHORIZED' : 'PENDING_REVIEW';
+        // Si hay motivos o el resultado general no es válido → guardar para revisión del admin
+        if (!empty($motivos) || !$valido) {
+            $motivoFinal = !empty($motivos) ? implode(' ', $motivos) : 'Comprobante pendiente de verificación manual.';
 
+            $miPago->update([
+                'comprobante'         => $path,
+                'verificacion_ia'     => $verificacion,
+                'estado'              => 'PENDING_REVIEW',
+                'estado_autorizacion' => 'pendiente_admin',
+                'motivo_rechazo'      => $motivoFinal,
+            ]);
+
+            $pendientes  = PagoModel::where('reserva_id', $r->id)->where('estado', 'PENDIENTE')->count();
+            $nuevoEstado = $pendientes === 0 ? 'PENDING_REVIEW' : 'PARTIAL_PAYMENT';
+            $r->update(['estado' => $nuevoEstado]);
+
+            $this->verificacion  = $verificacion;
+            $this->motivoRechazo = $motivoFinal;
+            $this->miPagoEstado  = 'PENDING_REVIEW';
+            $this->turno_estado  = $nuevoEstado;
+            $this->enviado       = true;
+            $this->dispatch('toast', message: 'Comprobante guardado. El administrador lo revisará.', type: 'info');
+            return;
+        }
+
+        // APROBADO POR IA
         $miPago->update([
-            'comprobante'     => $path,
-            'verificacion_ia' => $verificacion,
-            'estado'          => $estadoPago,
+            'comprobante'         => $path,
+            'verificacion_ia'     => $verificacion,
+            'estado'              => 'AUTHORIZED',
+            'estado_autorizacion' => 'aprobado_ia',
         ]);
 
-        // Si pagó el total completo (no solo su parte), autorizar también los otros pagos pendientes
-        if ($valido && $pagoCompleto && !$this->hayInvitados) {
+        // Si pagó el total completo, autorizar también los otros pagos pendientes
+        if ($pagoCompleto && !$this->hayInvitados) {
             PagoModel::where('reserva_id', $r->id)
                 ->where('id', '!=', $miPago->id)
                 ->where('estado', 'PENDIENTE')
-                ->update(['estado' => 'AUTHORIZED', 'comprobante' => $path]);
+                ->update(['estado' => 'AUTHORIZED', 'estado_autorizacion' => 'aprobado_ia', 'comprobante' => $path]);
         }
 
         $this->verificacion = $verificacion;
-        $this->miPagoEstado = $estadoPago;
+        $this->miPagoEstado = 'AUTHORIZED';
         $this->enviado      = true;
 
-        // Actualizar estado de la reserva
-        if ($valido) {
-            $pendientes = PagoModel::where('reserva_id', $r->id)
-                ->where('estado', 'PENDIENTE')
-                ->count();
+        $pendientes = PagoModel::where('reserva_id', $r->id)->where('estado', 'PENDIENTE')->count();
 
-            if ($pendientes === 0) {
-                $r->update(['estado' => 'AUTHORIZED', 'esta_pagado' => true]);
-                $msg = $pagoCompleto && !$this->hayInvitados && $this->totalReserva > $this->totalAPagar
-                    ? '¡Pago total verificado! Tu reserva fue confirmada.'
-                    : '¡Pago verificado! Tu reserva fue confirmada.';
-            } else {
-                $r->update(['estado' => 'PARTIAL_PAYMENT']);
-                $msg = '¡Tu parte fue verificada! Falta que tu/s rival/es abonen la suya.';
-            }
-
-            $this->dispatch('toast', message: $msg, type: 'success');
-            $this->redirect(route('agenda'));
-            return;
+        if ($pendientes === 0) {
+            $r->update(['estado' => 'AUTHORIZED', 'esta_pagado' => true]);
+            $msg = $pagoCompleto && !$this->hayInvitados && $this->totalReserva > $this->totalAPagar
+                ? '¡Pago total verificado! Tu reserva fue confirmada.'
+                : '¡Pago verificado! Tu reserva fue confirmada.';
         } else {
-            $pendientes  = PagoModel::where('reserva_id', $r->id)
-                ->where('estado', 'PENDIENTE')
-                ->count();
-            $nuevoEstado = $pendientes === 0 ? 'PENDING_REVIEW' : 'PARTIAL_PAYMENT';
-            $r->update(['estado' => $nuevoEstado]);
-            $this->turno_estado = $nuevoEstado;
-            $this->dispatch('toast', message: 'Comprobante enviado. El club lo revisará manualmente.', type: 'info');
+            $r->update(['estado' => 'PARTIAL_PAYMENT']);
+            $msg = '¡Tu parte fue verificada! Falta que tu/s rival/es abonen la suya.';
         }
+
+        $this->dispatch('toast', message: $msg, type: 'success');
+        $this->redirect(route('agenda'));
     }
 
     public function render()
