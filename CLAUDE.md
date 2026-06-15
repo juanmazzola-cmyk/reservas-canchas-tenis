@@ -59,7 +59,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 | `EscanearCarnet.php` | QR scanner for `control`/`admin` roles. Uses `html5-qrcode` CDN. **Requires HTTPS** — camera blocked on plain HTTP. |
 | `Admin/Usuarios.php` | User management |
 | `Admin/Configuracion.php` | System config (prices, courts, MP credentials, etc.) |
-| `Admin/Estadisticas.php` | Statistics: reservas del período, usuarios, pagos autorizados (desglose no-socios / con invitados), uso por cancha con top horarios. Filtra por el mes del turno (campo `dia`), no por `created_at`. |
+| `Admin/Estadisticas.php` | Statistics: reservas del período, usuarios, pagos autorizados (desglose no-socios / con invitados), uso por cancha con top horarios. Tiene tres granularidades: **día** (default, filtra por número de día + mes del campo `dia`), **mes** (filtra por mes del campo `dia`) y **año** (filtra por `created_at` del año completo). El campo `dia` es un string como "lun 02 jun" sin año — el año se infiere de `created_at`. |
 | `Admin/Comprobantes.php` | Receipt verification queue — muestra solo pagos con `estado_autorizacion = 'pendiente_admin'`. El admin autoriza desde la grilla de Agenda (`autorizarPago()`). |
 | `NavBadge.php` | Badge en nav del admin (reservas pendientes de pago + socios nuevos) |
 
