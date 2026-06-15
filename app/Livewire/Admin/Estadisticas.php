@@ -13,6 +13,8 @@ class Estadisticas extends Component
 {
     public int $mes;
     public int $anio;
+    public int $dia;
+    public string $granularidad = 'dia';
 
     public int $totalPeriodo = 0;
     public int $pendientesPago = 0;
@@ -33,25 +35,48 @@ class Estadisticas extends Component
     {
         $this->mes  = (int) Carbon::now()->format('m');
         $this->anio = (int) Carbon::now()->format('Y');
+        $this->dia  = (int) Carbon::now()->format('d');
         $this->cargarEstadisticas();
     }
 
-    public function updatedMes(): void   { $this->cargarEstadisticas(); }
-    public function updatedAnio(): void  { $this->cargarEstadisticas(); }
+    public function updatedMes(): void          { $this->cargarEstadisticas(); }
+    public function updatedAnio(): void         { $this->cargarEstadisticas(); }
+    public function updatedDia(): void          { $this->cargarEstadisticas(); }
+    public function updatedGranularidad(): void { $this->cargarEstadisticas(); }
 
     public function cargarEstadisticas(): void
     {
-        // Filtrar por el mes del turno (campo `dia` = "lun 02 jun"), no por created_at.
-        // Se usa created_at con buffer de ±5 días para acotar la query, luego se filtra por nombre de mes.
-        $mesNombres  = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-        $mesNombre   = $mesNombres[$this->mes];
-        $inicioCarga = Carbon::create($this->anio, $this->mes, 1)->subDays(5);
-        $finCarga    = Carbon::create($this->anio, $this->mes, 1)->endOfMonth();
+        $mesNombres = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-        $reservas = Reserva::where('estado', '!=', 'DRAFT')
-            ->whereBetween('created_at', [$inicioCarga, $finCarga])
-            ->get()
-            ->filter(fn($r) => (explode(' ', strtolower(trim($r->dia)))[2] ?? '') === $mesNombre);
+        if ($this->granularidad === 'anio') {
+            $inicioCarga = Carbon::create($this->anio, 1, 1)->subDays(5);
+            $finCarga    = Carbon::create($this->anio, 12, 31)->endOfDay();
+            $reservas = Reserva::where('estado', '!=', 'DRAFT')
+                ->whereBetween('created_at', [$inicioCarga, $finCarga])
+                ->get();
+        } elseif ($this->granularidad === 'dia') {
+            $mesNombre   = $mesNombres[$this->mes];
+            $diaNum      = str_pad($this->dia, 2, '0', STR_PAD_LEFT);
+            $fecha       = Carbon::create($this->anio, $this->mes, $this->dia);
+            $inicioCarga = $fecha->copy()->subDays(90);
+            $finCarga    = $fecha->copy()->endOfDay();
+            $reservas = Reserva::where('estado', '!=', 'DRAFT')
+                ->whereBetween('created_at', [$inicioCarga, $finCarga])
+                ->get()
+                ->filter(function ($r) use ($diaNum, $mesNombre) {
+                    $parts = explode(' ', strtolower(trim($r->dia)));
+                    return ($parts[1] ?? '') === $diaNum && ($parts[2] ?? '') === $mesNombre;
+                });
+        } else {
+            // mes (comportamiento anterior)
+            $mesNombre   = $mesNombres[$this->mes];
+            $inicioCarga = Carbon::create($this->anio, $this->mes, 1)->subDays(5);
+            $finCarga    = Carbon::create($this->anio, $this->mes, 1)->endOfMonth();
+            $reservas = Reserva::where('estado', '!=', 'DRAFT')
+                ->whereBetween('created_at', [$inicioCarga, $finCarga])
+                ->get()
+                ->filter(fn($r) => (explode(' ', strtolower(trim($r->dia)))[2] ?? '') === $mesNombre);
+        }
 
         $this->totalPeriodo   = $reservas->count();
         $this->pendientesPago = $reservas->where('esta_pagado', false)->count();

@@ -3,32 +3,66 @@
         <h2 class="text-xl font-bold text-gray-800">Estadísticas</h2>
     </div>
 
-    {{-- Filtro mes / año --}}
-    <div class="bg-white rounded-2xl shadow-sm p-4 flex gap-3">
-        <div class="flex-1">
-            <label class="block text-xs font-medium text-gray-500 mb-1">Mes</label>
-            <select wire:model.live="mes" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-terracota">
-                <option value="1">Enero</option>
-                <option value="2">Febrero</option>
-                <option value="3">Marzo</option>
-                <option value="4">Abril</option>
-                <option value="5">Mayo</option>
-                <option value="6">Junio</option>
-                <option value="7">Julio</option>
-                <option value="8">Agosto</option>
-                <option value="9">Septiembre</option>
-                <option value="10">Octubre</option>
-                <option value="11">Noviembre</option>
-                <option value="12">Diciembre</option>
-            </select>
+    {{-- Filtro granularidad + período --}}
+    <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        {{-- Toggle Día / Mes / Año --}}
+        <div class="flex gap-2">
+            <button wire:click="$set('granularidad', 'dia')"
+                    class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {{ $granularidad === 'dia' ? 'bg-terracota text-white' : 'bg-gray-100 text-gray-600' }}">
+                Día
+            </button>
+            <button wire:click="$set('granularidad', 'mes')"
+                    class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {{ $granularidad === 'mes' ? 'bg-terracota text-white' : 'bg-gray-100 text-gray-600' }}">
+                Mes
+            </button>
+            <button wire:click="$set('granularidad', 'anio')"
+                    class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {{ $granularidad === 'anio' ? 'bg-terracota text-white' : 'bg-gray-100 text-gray-600' }}">
+                Año
+            </button>
         </div>
-        <div class="flex-1">
-            <label class="block text-xs font-medium text-gray-500 mb-1">Año</label>
-            <select wire:model.live="anio" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-terracota">
-                @for($y = now()->year; $y >= now()->year - 3; $y--)
-                    <option value="{{ $y }}">{{ $y }}</option>
-                @endfor
-            </select>
+
+        {{-- Selectores según granularidad --}}
+        <div class="flex gap-3">
+            @if($granularidad === 'dia')
+            @php $diasEnMes = \Carbon\Carbon::create($anio, $mes, 1)->daysInMonth; @endphp
+            <div class="w-20">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Día</label>
+                <select wire:model.live="dia" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-terracota">
+                    @for($d = 1; $d <= $diasEnMes; $d++)
+                        <option value="{{ $d }}">{{ str_pad($d, 2, '0', STR_PAD_LEFT) }}</option>
+                    @endfor
+                </select>
+            </div>
+            @endif
+
+            @if($granularidad !== 'anio')
+            <div class="flex-1">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Mes</label>
+                <select wire:model.live="mes" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-terracota">
+                    <option value="1">Enero</option>
+                    <option value="2">Febrero</option>
+                    <option value="3">Marzo</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Mayo</option>
+                    <option value="6">Junio</option>
+                    <option value="7">Julio</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                </select>
+            </div>
+            @endif
+
+            <div class="{{ $granularidad === 'anio' ? 'flex-1' : 'w-24' }}">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Año</label>
+                <select wire:model.live="anio" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-terracota">
+                    @for($y = now()->year; $y >= now()->year - 3; $y--)
+                        <option value="{{ $y }}">{{ $y }}</option>
+                    @endfor
+                </select>
+            </div>
         </div>
     </div>
 
