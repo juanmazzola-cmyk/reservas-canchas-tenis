@@ -60,7 +60,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 | `Admin/Usuarios.php` | User management |
 | `Admin/Configuracion.php` | System config (prices, courts, MP credentials, etc.) |
 | `Admin/Estadisticas.php` | Statistics: reservas del período, usuarios, pagos autorizados (desglose no-socios / con invitados), uso por cancha con top horarios. Tiene tres granularidades: **día** (default, filtra por número de día + mes del campo `dia`), **mes** (filtra por mes del campo `dia`) y **año** (filtra por `created_at` del año completo). El campo `dia` es un string como "lun 02 jun" sin año — el año se infiere de `created_at`. |
-| `Admin/Comprobantes.php` | Receipt verification queue — muestra solo pagos con `estado_autorizacion = 'pendiente_admin'`. El admin autoriza desde la grilla de Agenda (`autorizarPago()`). |
+| `Admin/Comprobantes.php` | Receipt verification queue — muestra solo pagos con `estado_autorizacion = 'pendiente_admin'`. El admin autoriza desde la grilla de Agenda (`autorizarPago()`). El botón "Autorizar pago" aparece cuando hay pagos `pendiente_admin` para esa reserva (independientemente del `estado` de la reserva — puede ser `PENDING_REVIEW` o `PARTIAL_PAYMENT`). |
 | `NavBadge.php` | Badge en nav del admin (reservas pendientes de pago + socios nuevos) |
 
 ### Payment System
@@ -75,6 +75,8 @@ Two payment paths:
 - **Aprobado IA** (`estado_autorizacion = 'aprobado_ia'`): todo verificado correctamente, pago AUTHORIZED automáticamente.
 
 States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`, `PENDING_REVIEW`, `PARTIAL_PAYMENT`. States on `Pago.estado`: `PENDIENTE`, `AUTHORIZED`, `PENDING_REVIEW`. `Pago.estado_autorizacion`: `aprobado_ia`, `rechazado_ia`, `pendiente_admin`, `aprobado_admin`. `Reserva.esta_pagado` is a boolean shortcut.
+
+**`autorizarPago()` en `Agenda.php`**: después de marcar el pago como `aprobado_admin`, cuenta los pagos restantes con `estado = 'PENDIENTE'` para esa reserva. Si quedan → `PARTIAL_PAYMENT` / `esta_pagado = false`. Si no quedan → `AUTHORIZED` / `esta_pagado = true`. Mismo criterio que `Pago.php` usa para el flujo automático de IA/MP.
 
 `DRAFT` reservations (created when MP flow starts but not completed) are auto-cancelled when the browser session ends.
 
