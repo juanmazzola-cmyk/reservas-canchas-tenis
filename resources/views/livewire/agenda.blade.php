@@ -610,7 +610,8 @@
                     @endif
 
                     @if(!$dr->esta_pagado)
-                        @if($dr->estado === 'PENDING_REVIEW')
+                        @php $hayPendienteAdmin = $dr->pagos->contains('estado_autorizacion', 'pendiente_admin'); @endphp
+                        @if($hayPendienteAdmin)
                         <button wire:click="autorizarPago({{ $dr->id }})"
                             class="w-full bg-[#16a34a] text-white py-3 rounded-xl text-sm font-bold hover:bg-green-700">
                             ✓ Autorizar pago y confirmar reserva

@@ -890,7 +890,7 @@ class Agenda extends Component
     public function getDetalleReserva(): ?Reserva
     {
         if (!$this->detalleReservaId) return null;
-        return Reserva::find($this->detalleReservaId);
+        return Reserva::with('pagos')->find($this->detalleReservaId);
     }
 
     public function render()
