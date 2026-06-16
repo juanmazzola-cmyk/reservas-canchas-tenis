@@ -85,8 +85,8 @@
 
             <button
                 type="button"
-                onclick="document.getElementById('login-form').requestSubmit()"
-                class="w-full bg-[#16a34a] hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-colors text-sm tracking-wide">
+                onclick="this.disabled=true; this.innerHTML='Ingresando...'; document.getElementById('login-form').submit()"
+                class="w-full bg-[#16a34a] hover:bg-green-700 active:bg-green-800 active:scale-95 text-white font-bold py-3 rounded-lg transition-all duration-150 text-sm tracking-wide">
                 INGRESAR
             </button>
 
