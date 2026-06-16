@@ -847,6 +847,39 @@ class Agenda extends Component
         $this->dispatch('reservaAutorizada');
     }
 
+    public function cobrarManualJugador(int $reservaId, int $userId): void
+    {
+        if (!in_array(Auth::user()->rol, ['admin', 'control'])) return;
+
+        $reserva = Reserva::find($reservaId);
+        if (!$reserva) return;
+
+        $config = \App\Models\Configuracion::getConfig();
+        $monto  = $config?->non_member_price ?? 0;
+
+        $pago = Pago::firstOrCreate(
+            ['reserva_id' => $reservaId, 'user_id' => $userId],
+            ['monto' => $monto, 'estado' => 'PENDIENTE', 'estado_autorizacion' => 'pendiente_admin']
+        );
+
+        $pago->update([
+            'estado'              => 'AUTHORIZED',
+            'estado_autorizacion' => 'aprobado_admin',
+            'autorizado_por'      => Auth::id(),
+            'autorizado_at'       => now(),
+        ]);
+
+        $pendientes = Pago::where('reserva_id', $reservaId)->where('estado', 'PENDIENTE')->count();
+        if ($pendientes === 0) {
+            $reserva->update(['esta_pagado' => true, 'estado' => 'AUTHORIZED']);
+        } else {
+            $reserva->update(['esta_pagado' => false, 'estado' => 'PARTIAL_PAYMENT']);
+        }
+
+        $this->cargarReservasYBloqueos();
+        $this->dispatch('toast', message: 'Pago registrado manualmente.', type: 'success');
+    }
+
     public function cobrarYAutorizar(int $reservaId): void
     {
         if (!in_array(Auth::user()->rol, ['admin', 'control'])) return;

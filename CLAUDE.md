@@ -78,6 +78,8 @@ States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`, `PENDING_REVIEW`, 
 
 **`autorizarPago()` en `Agenda.php`**: después de marcar el pago como `aprobado_admin`, cuenta los pagos restantes con `estado = 'PENDIENTE'` para esa reserva. Si quedan → `PARTIAL_PAYMENT` / `esta_pagado = false`. Si no quedan → `AUTHORIZED` / `esta_pagado = true`. Mismo criterio que `Pago.php` usa para el flujo automático de IA/MP.
 
+**`cobrarManualJugador(reservaId, userId)` en `Agenda.php`**: registra un pago cobrado fuera del sistema (efectivo o transferencia en el ingreso). Accesible para `admin` y `control`. Hace `firstOrCreate` del Pago con `monto = non_member_price` de Configuración, lo marca `AUTHORIZED / aprobado_admin`, y aplica la misma lógica de cierre que `autorizarPago()`. El modal no se cierra para permitir cobrar a múltiples jugadores en una sola sesión. En la blade, el modal de detalle muestra un botón **Cobrar** (amber) para cada no-socio sin pago autorizado; al cobrar cambia a **✓ Pagó** (verde).
+
 `DRAFT` reservations (created when MP flow starts but not completed) are auto-cancelled when the browser session ends.
 
 ### Models

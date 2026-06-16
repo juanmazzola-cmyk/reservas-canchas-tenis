@@ -553,7 +553,9 @@
             <div class="p-6 overflow-y-auto flex-1">
                 <div class="mb-4">
                     <p class="text-xs text-gray-500 uppercase font-medium mb-2">Jugadores</p>
+                    @php $pagosKeyBy = $dr->pagos->keyBy('user_id'); @endphp
                     @foreach($drJugadores as $jug)
+                    @php $pagoJug = $pagosKeyBy->get($jug->id); @endphp
                     <div class="flex items-center gap-2 py-1.5 border-b border-gray-100">
                         <div class="w-7 h-7 bg-[#0057a8] text-white rounded-full flex items-center justify-center text-xs font-bold">
                             {{ strtoupper(substr($jug->nombre, 0, 1)) }}
@@ -562,9 +564,20 @@
                             <p class="text-sm font-medium">{{ $jug->nombre }} {{ $jug->apellido }}</p>
                             <p class="text-xs text-gray-400">{{ $jug->telefono }}</p>
                         </div>
-                        <span class="ml-auto text-xs {{ $jug->es_socio ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700' }} px-2 py-0.5 rounded-full">
-                            {{ $jug->es_socio ? 'Socio' : 'No socio' }}
-                        </span>
+                        @if($jug->es_socio)
+                            <span class="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Socio</span>
+                        @elseif($pagoJug && $pagoJug->estado === 'AUTHORIZED')
+                            <span class="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">✓ Pagó</span>
+                        @elseif($pagoJug && $pagoJug->estado === 'PENDING_REVIEW')
+                            <span class="ml-auto text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">En revisión</span>
+                        @elseif(in_array(auth()->user()->rol, ['admin', 'control']))
+                            <button wire:click="cobrarManualJugador({{ $dr->id }}, {{ $jug->id }})"
+                                class="ml-auto text-xs bg-amber-500 hover:bg-amber-600 text-white px-3 py-1 rounded-full font-medium transition">
+                                Cobrar
+                            </button>
+                        @else
+                            <span class="ml-auto text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">No socio</span>
+                        @endif
                     </div>
                     @endforeach
                     @foreach($dr->invitados ?? [] as $inv)
