@@ -865,7 +865,6 @@ class Agenda extends Component
         if (Auth::user()->rol !== 'admin') return;
         $reserva = Reserva::find($reservaId);
         if ($reserva) {
-            $reserva->update(['esta_pagado' => true, 'estado' => 'AUTHORIZED']);
             Pago::where('reserva_id', $reservaId)
                 ->where('estado_autorizacion', 'pendiente_admin')
                 ->update([
@@ -874,6 +873,13 @@ class Agenda extends Component
                     'autorizado_por'      => Auth::id(),
                     'autorizado_at'       => now(),
                 ]);
+
+            $pendientes = Pago::where('reserva_id', $reservaId)->where('estado', 'PENDIENTE')->count();
+            if ($pendientes === 0) {
+                $reserva->update(['esta_pagado' => true, 'estado' => 'AUTHORIZED']);
+            } else {
+                $reserva->update(['esta_pagado' => false, 'estado' => 'PARTIAL_PAYMENT']);
+            }
         }
         $this->modalDetalle = false;
         $this->cargarReservasYBloqueos();
