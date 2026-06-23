@@ -85,7 +85,11 @@ class Agenda extends Component
                 $paymentDeadlinePassed = $fechaHora->copy()->subMinutes(15)->isPast();
                 // Cancelar solo antes del partido (vencimiento pago) o después de que termine (90 min)
                 // Durante el partido NO cancelar: la reserva debe seguir visible en la grilla
-                if ($paymentDeadlinePassed && (!$matchStarted || $matchEnded)) {
+                $tienePendienteAdmin = $rp->pagos()
+                    ->where('estado_autorizacion', 'pendiente_admin')
+                    ->exists();
+                if (!$tienePendienteAdmin && $paymentDeadlinePassed &&
+                    (!$matchStarted || $matchEnded)) {
                     $rp->delete();
                 }
             } catch (\Exception $e) { continue; }
