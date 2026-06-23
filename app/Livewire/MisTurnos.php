@@ -253,7 +253,7 @@ class MisTurnos extends Component
                     $anio = Carbon::now()->year;
                     $fecha = Carbon::create($anio, $mes, (int)$diaNum);
                     $fechaHora = Carbon::parse($fecha->toDateString() . ' ' . $hora);
-                    return $fechaHora->isPast();
+                    return $fechaHora->addMinutes(90)->isPast();
                 }
             }
         } catch (\Exception $e) {}
