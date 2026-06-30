@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use OwenIt\Auditing\Contracts\Auditable;
+use OwenIt\Auditing\Auditable as AuditableTrait;
 
-class Reserva extends Model
+class Reserva extends Model implements Auditable
 {
+    use AuditableTrait;
     protected $table = 'reservas';
 
     protected $fillable = [
