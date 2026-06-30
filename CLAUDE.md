@@ -52,7 +52,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 | Component | Purpose |
 |-----------|---------|
 | `Agenda.php` | Main reservation calendar — most complex component (~31KB). Handles multi-court/multi-day grid, slot selection, creating/editing reservas. |
-| `MisTurnos.php` | User's upcoming/past reservations. Solo el `creador_id` puede cancelar o reprogramar — los otros jugadores de la reserva no tienen esa opción. |
+| `MisTurnos.php` | User's upcoming/past reservations. Solo el `creador_id` puede cancelar o reprogramar — los otros jugadores de la reserva no tienen esa opción. Una reserva se considera "vencida" (y se oculta) 90 minutos después del inicio del turno, no en el momento exacto en que empieza. |
 | `Pago.php` | Payment screen: MercadoPago flow + bank transfer receipt upload |
 | `Carnet.php` | Membership card for socios: selfie upload, DNI, nro_socio, QR code. Only visible to `es_socio = true`. |
 | `VerificarSocio.php` | Verification screen shown after scanning a socio's QR. Shows photo, name, DNI, nro_socio, validity. |
@@ -82,6 +82,8 @@ States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`, `PENDING_REVIEW`, 
 
 `DRAFT` reservations (created when MP flow starts but not completed) are auto-cancelled when the browser session ends.
 
+**Cancelación automática por proximidad al turno (`mount()` de `Agenda.php`)**: reservas `PENDING` o `PARTIAL_PAYMENT` se eliminan cuando venció el plazo de pago (15 min antes del turno) y el turno aún no empezó, o cuando el turno ya terminó (90 min después). **Excepción:** si la reserva tiene algún pago con `estado_autorizacion = 'pendiente_admin'`, NO se elimina — el admin debe resolverla manualmente.
+
 ### Models
 
 - **User**: roles, WhatsApp (stored without 0/15 prefix, displayed with +54), `forzar_cambio_password`, `es_socio`, `nro_socio`, `grupo_sanguineo` (nullable, optional — A+/A-/B+/B-/AB+/AB-/O+/O-), `foto_carnet` (nullable, path in `storage/public/fotos-carnet/`)
@@ -90,6 +92,17 @@ States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`, `PENDING_REVIEW`, 
 - **Configuracion**: single-row config table, retrieved via `Configuracion::getConfig()`. Key fields: `court_count`, `cancha_names` (array), `slots` (array of time strings), `non_member_price`, `carnet_enabled` (boolean, habilita/deshabilita el sistema de carnets)
 - **Bloqueo**: court blocks with `MotivoBloqueo` enum
 - **Notification** (Laravel built-in): notificaciones en app para admins. Actualmente: `SocioRegistrado` — se dispara cuando un usuario se registra como socio de tenis. Se muestra como badge en el ícono "Usuarios" del nav y como panel en `Admin/Usuarios`.
+
+### Auditoría (`owen-it/laravel-auditing`)
+
+Los modelos `Reserva` y `Pago` implementan `Auditable` (trait `OwenIt\Auditing\Auditable`). Cada `create`, `update` y `delete` queda registrado automáticamente en la tabla `audits` con `user_id`, `event`, `old_values`, `new_values`, `ip_address` y `url`.
+
+Consulta rápida en Tinker:
+```php
+\OwenIt\Auditing\Models\Audit::with('user')->latest()->take(20)->get();
+```
+
+En producción (DonWeb sin terminal): phpMyAdmin → `SELECT * FROM audits ORDER BY created_at DESC LIMIT 50`.
 
 ### Database
 
