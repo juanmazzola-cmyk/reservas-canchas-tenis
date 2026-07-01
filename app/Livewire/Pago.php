@@ -302,12 +302,6 @@ class Pago extends Component
             }
         }
 
-        if (($verificacion['hora_ok'] ?? null) === false) {
-            $ventana         = $config->payment_window_minutes ?? 30;
-            $horaEncontrada  = $verificacion['hora_encontrada'] ? ' (encontrada: ' . $verificacion['hora_encontrada'] . ')' : '';
-            $motivos[] = "El horario está fuera del rango permitido (±{$ventana} min){$horaEncontrada}.";
-        }
-
         if (($verificacion['alias_ok'] ?? null) === null) {
             $motivos[] = 'No se pudo leer el alias/CBU del comprobante.';
         }
@@ -315,7 +309,6 @@ class Pago extends Component
         // Si es pago parcial, recalcular valido ignorando importe_ok
         if ($pagoParcial) {
             $valido = ($verificacion['fecha_ok']  ?? null) === true
-                && ($verificacion['hora_ok']   ?? null) !== false
                 && ($verificacion['alias_ok']  ?? null) === true;
         } else {
             $valido = $verificacion['valido'] ?? false;

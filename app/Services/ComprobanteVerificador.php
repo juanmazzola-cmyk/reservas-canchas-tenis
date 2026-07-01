@@ -136,13 +136,13 @@ PROMPT;
             $importeOk     = $data['importe_ok']     ?? null;
             $aliasOk       = $data['alias_ok']       ?? null;
             $fechaOk       = $data['fecha_ok']       ?? null;
-            $horaOk        = $data['hora_ok']        ?? null;
 
-            // Confirmación automática: fecha + hora + importe + alias/CBU/CUIT encontrado y correcto
+            // Confirmación automática: fecha + importe + alias/CBU/CUIT encontrado y correcto
+            // (hora no se confronta: la ventana se ancla al momento de subida, no al turno,
+            // y da falsos negativos cuando el usuario tarda en subir el comprobante)
             $valido = $esComprobante === true
                 && $importeOk === true
                 && $fechaOk  !== false   // si no aparece fecha, se acepta (ej: BNA+ no la muestra)
-                && $horaOk   !== false   // si no aparece hora, se acepta
                 && $aliasOk  === true;   // debe aparecer y coincidir
 
             return array_merge($data, ['valido' => $valido, 'error' => null]);
