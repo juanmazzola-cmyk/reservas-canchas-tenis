@@ -258,18 +258,27 @@ class Agenda extends Component
             if ($r['hora'] === $hora && $r['cancha_id'] == $cancha) {
                 $esMia = in_array($userId, $r['jugadores_ids'] ?? []);
                 $apellidos = [];
+                $jugadoresInfo = [];
                 foreach ($r['jugadores_ids'] ?? [] as $jId) {
                     if (isset($this->usuariosPorId[$jId])) {
-                        $apellidos[] = $this->usuariosPorId[$jId]['apellido'];
+                        $ap = $this->usuariosPorId[$jId]['apellido'];
+                        $apellidos[] = $ap;
+                        $jugadoresInfo[] = [
+                            'apellido' => $ap,
+                            'tipo'     => $this->usuariosPorId[$jId]['es_socio'] ? 'socio' : 'no_socio',
+                        ];
                     }
                 }
                 foreach ($r['invitados'] ?? [] as $inv) {
-                    $apellidos[] = ($inv['apellido'] ?? '') . ' *';
+                    $ap = ($inv['apellido'] ?? '') . ' *';
+                    $apellidos[] = $ap;
+                    $jugadoresInfo[] = ['apellido' => $ap, 'tipo' => 'invitado'];
                 }
                 return [
                     'tipo'          => 'ocupada',
                     'reserva_id'    => $r['id'],
                     'apellidos'     => $apellidos,
+                    'jugadores'     => $jugadoresInfo,
                     'esta_pagado'   => $r['esta_pagado'],
                     'estado'        => $r['estado'],
                     'comprobante'   => $r['comprobante'] ?? null,
