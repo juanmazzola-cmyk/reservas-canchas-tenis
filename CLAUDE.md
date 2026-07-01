@@ -51,7 +51,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 
 | Component | Purpose |
 |-----------|---------|
-| `Agenda.php` | Main reservation calendar — most complex component (~31KB). Handles multi-court/multi-day grid, slot selection, creating/editing reservas. |
+| `Agenda.php` | Main reservation calendar — most complex component (~31KB). Handles multi-court/multi-day grid, slot selection, creating/editing reservas. En la grilla del rol `control`, `getCeldaInfo()` devuelve `jugadores` (apellido + tipo) y la blade pinta cada apellido: verde = socio, negro = no socio, rojo = invitado. |
 | `MisTurnos.php` | User's upcoming/past reservations. Solo el `creador_id` puede cancelar o reprogramar — los otros jugadores de la reserva no tienen esa opción. Una reserva se considera "vencida" (y se oculta) 90 minutos después del inicio del turno, no en el momento exacto en que empieza. |
 | `Pago.php` | Payment screen: MercadoPago flow + bank transfer receipt upload |
 | `Carnet.php` | Membership card for socios: selfie upload, DNI, nro_socio, QR code. Only visible to `es_socio = true`. |
@@ -67,11 +67,13 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 
 Two payment paths:
 1. **MercadoPago**: Creates preference → redirects to MP → callback to `/pago/mp/success|failure|pending` → updates `reservas.estado_pago`
-2. **Bank transfer**: User uploads receipt image/PDF → `ComprobanteVerificador` service calls Anthropic Claude API to verify amount/timestamp/account → admin reviews in `/admin/comprobantes`. Verification result stored in `Pago.verificacion_ia` (not in `Reserva`). `fecha_ok` y `hora_ok` son permisivos (null = aceptado) porque algunos bancos como BNA+ no muestran fecha/hora en el PDF.
+2. **Bank transfer**: User uploads receipt image/PDF → `ComprobanteVerificador` service calls Anthropic Claude API to verify amount/timestamp/account → admin reviews in `/admin/comprobantes`. Verification result stored in `Pago.verificacion_ia` (not in `Reserva`). `fecha_ok` es permisivo (null = aceptado) porque algunos bancos como BNA+ no muestran fecha/hora en el PDF.
+
+**`hora_ok` no se confronta** para la aprobación automática: la IA lo calcula (y se guarda/muestra como referencia), pero `ComprobanteVerificador::$valido` y `Pago.php::enviarComprobante()` ya no lo usan. Motivo: la ventana horaria se ancla al momento en que se sube el comprobante, no al horario del turno — un pago hecho a tiempo pero subido tarde a la app daba falso rechazo. `fecha_ok` (que sí bloquea) ya filtra comprobantes viejos/reciclados, y el bajo volumen de pagos por transferencia hace que el admin controle manualmente cualquier caso sospechoso en `/admin/comprobantes`.
 
 **Criterios de rechazo en `enviarComprobante()`:**
 - **Hard reject** (borra el archivo, muestra error, el usuario debe reintentar): archivo no es un comprobante bancario válido / importe encontrado pero no coincide / alias/CBU no coincide.
-- **Pendiente admin** (`estado_autorizacion = 'pendiente_admin'`): datos ilegibles — fecha, hora, importe o alias no se pueden leer. La reserva queda guardada y el admin la revisa en `/admin/comprobantes`.
+- **Pendiente admin** (`estado_autorizacion = 'pendiente_admin'`): datos ilegibles — fecha, importe o alias no se pueden leer. La reserva queda guardada y el admin la revisa en `/admin/comprobantes`.
 - **Aprobado IA** (`estado_autorizacion = 'aprobado_ia'`): todo verificado correctamente, pago AUTHORIZED automáticamente.
 
 States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`, `PENDING_REVIEW`, `PARTIAL_PAYMENT`. States on `Pago.estado`: `PENDIENTE`, `AUTHORIZED`, `PENDING_REVIEW`. `Pago.estado_autorizacion`: `aprobado_ia`, `rechazado_ia`, `pendiente_admin`, `aprobado_admin`. `Reserva.esta_pagado` is a boolean shortcut.
