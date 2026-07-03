@@ -204,8 +204,8 @@
                                     <button wire:click="seleccionarTurno('{{ $hora }}', {{ $cancha['id'] }})"
                                         class="w-full rounded border text-left px-1.5 py-1 text-[10px] leading-snug transition
                                             {{ $esParcial ? 'bg-amber-100 border-amber-400 hover:bg-amber-200' : ($celda['es_mia'] ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' : 'bg-gray-100 border-gray-200 hover:bg-gray-200') }}">
-                                        @foreach($celda['apellidos'] as $ap)
-                                            <div class="truncate text-center font-medium {{ str_ends_with($ap, ' *') ? 'text-orange-500' : ($esParcial ? 'text-amber-800' : ($celda['es_mia'] ? 'text-blue-800' : 'text-gray-600')) }}">{{ $ap }}</div>
+                                        @foreach($celda['jugadores'] as $jug)
+                                            <div class="truncate text-center font-medium {{ $jug['tipo'] === 'invitado' ? 'text-orange-500' : (auth()->user()->rol === 'admin' && $jug['tipo'] === 'socio' ? 'text-green-600' : ($esParcial ? 'text-amber-800' : ($celda['es_mia'] ? 'text-blue-800' : 'text-gray-600'))) }}">{{ $jug['apellido'] }}</div>
                                         @endforeach
                                         @if(!$celda['esta_pagado'])
                                             @if($esParcial)
