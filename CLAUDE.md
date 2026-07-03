@@ -51,7 +51,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 
 | Component | Purpose |
 |-----------|---------|
-| `Agenda.php` | Main reservation calendar — most complex component (~31KB). Handles multi-court/multi-day grid, slot selection, creating/editing reservas. En la grilla del rol `control`, `getCeldaInfo()` devuelve `jugadores` (apellido + tipo) y la blade pinta cada apellido: verde = socio, negro = no socio, rojo = invitado. |
+| `Agenda.php` | Main reservation calendar — most complex component (~31KB). Handles multi-court/multi-day grid, slot selection, creating/editing reservas. En la grilla del rol `control`, `getCeldaInfo()` devuelve `jugadores` (apellido + tipo) y la blade pinta cada apellido: verde = socio, negro = no socio, rojo = invitado. En la grilla del rol `admin` (celda `ocupada`, rama `$puedeVerDetalle`), se usa el mismo array `jugadores` para pintar los apellidos de socios en verde (invitados en naranja, resto sin cambios); las celdas `LIBRE` del rol `admin` se muestran en verde sólido (`#16a34a`) en vez del verde clarito con hover que usan `usuario`/`control`. |
 | `MisTurnos.php` | User's upcoming/past reservations. Solo el `creador_id` puede cancelar o reprogramar — los otros jugadores de la reserva no tienen esa opción. Una reserva se considera "vencida" (y se oculta) 90 minutos después del inicio del turno, no en el momento exacto en que empieza. |
 | `Pago.php` | Payment screen: MercadoPago flow + bank transfer receipt upload |
 | `Carnet.php` | Membership card for socios: selfie upload, DNI, nro_socio, QR code. Only visible to `es_socio = true`. |
