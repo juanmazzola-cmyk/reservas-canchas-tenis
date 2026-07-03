@@ -274,6 +274,11 @@
                                             </div>
                                         @elseif(auth()->user()->rol === 'control')
                                             <div class="w-full rounded bg-gray-50 border border-gray-200 text-center py-2 text-gray-400 text-[11px]">LIBRE</div>
+                                        @elseif(auth()->user()->rol === 'admin')
+                                            <button wire:click="seleccionarTurno('{{ $hora }}', {{ $cancha['id'] }})"
+                                                class="w-full rounded bg-[#16a34a] border border-[#16a34a] hover:bg-green-700 hover:border-green-700 text-center py-2 text-white text-[11px] font-medium transition-colors">
+                                                LIBRE
+                                            </button>
                                         @else
                                             <button wire:click="seleccionarTurno('{{ $hora }}', {{ $cancha['id'] }})"
                                                 class="w-full rounded bg-green-50 border border-green-100 hover:bg-[#16a34a] hover:text-white hover:border-[#16a34a] text-center py-2 text-green-600 text-[11px] font-medium transition-colors">
