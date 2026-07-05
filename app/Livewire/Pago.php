@@ -251,11 +251,8 @@ class Pago extends Component
             return;
         }
 
-        // Normalizar importe argentino: "$ 10.000,00" → 10000.00
-        $importeRaw = preg_replace('/[^\d,.]/', '', $verificacion['importe_encontrado'] ?? '0');
-        $importeRaw = str_replace('.', '', $importeRaw);
-        $importeRaw = str_replace(',', '.', $importeRaw);
-        $importeNum = (float) $importeRaw;
+        // Normalizar importe: soporta formato argentino ("15.000,00") e internacional ("15000.00")
+        $importeNum = $this->normalizarImporte($verificacion['importe_encontrado'] ?? '0');
         $pagoCompleto = ($verificacion['importe_ok'] ?? null) === true;
         $pagoParcial  = !$pagoCompleto
             && !$this->hayInvitados
@@ -380,5 +377,36 @@ class Pago extends Component
         return view('livewire.pago', [
             'config' => Configuracion::getConfig(),
         ])->layout('layouts.app');
+    }
+
+    private function normalizarImporte(string $raw): float
+    {
+        $limpio = preg_replace('/[^\d,.]/', '', $raw);
+        if ($limpio === '') return 0.0;
+
+        $ultimaComa  = strrpos($limpio, ',');
+        $ultimoPunto = strrpos($limpio, '.');
+
+        if ($ultimaComa !== false && $ultimoPunto !== false) {
+            // El separador más a la derecha es el decimal; el otro, separador de miles
+            if ($ultimaComa > $ultimoPunto) {
+                $limpio = str_replace('.', '', $limpio);
+                $limpio = str_replace(',', '.', $limpio);
+            } else {
+                $limpio = str_replace(',', '', $limpio);
+            }
+        } elseif ($ultimaComa !== false) {
+            $decimales = strlen($limpio) - $ultimaComa - 1;
+            $limpio = $decimales <= 2
+                ? str_replace(',', '.', $limpio)
+                : str_replace(',', '', $limpio);
+        } elseif ($ultimoPunto !== false) {
+            $decimales = strlen($limpio) - $ultimoPunto - 1;
+            if ($decimales > 2) {
+                $limpio = str_replace('.', '', $limpio);
+            }
+        }
+
+        return (float) $limpio;
     }
 }
