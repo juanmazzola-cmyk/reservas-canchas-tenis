@@ -76,6 +76,8 @@ Two payment paths:
 - **Pendiente admin** (`estado_autorizacion = 'pendiente_admin'`): datos ilegibles — fecha, importe o alias no se pueden leer. La reserva queda guardada y el admin la revisa en `/admin/comprobantes`.
 - **Aprobado IA** (`estado_autorizacion = 'aprobado_ia'`): todo verificado correctamente, pago AUTHORIZED automáticamente.
 
+**Normalización de importe (`Pago::normalizarImporte()`)**: el texto que devuelve la IA en `importe_encontrado` puede venir en formato argentino (`"15.000,00"`) o internacional (`"15000.00"`, típico de comprobantes de Banco Macro). La función detecta cuál separador es el decimal según cuántos dígitos quedan después del último separador (2 → decimal, 3 → miles), en vez de asumir siempre formato argentino. Antes de este fix, un importe como `"15000.00"` se parseaba como $1.500.000 (cien veces el valor real) y se rechazaba el comprobante por "importe no coincide".
+
 States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`, `PENDING_REVIEW`, `PARTIAL_PAYMENT`. States on `Pago.estado`: `PENDIENTE`, `AUTHORIZED`, `PENDING_REVIEW`. `Pago.estado_autorizacion`: `aprobado_ia`, `rechazado_ia`, `pendiente_admin`, `aprobado_admin`. `Reserva.esta_pagado` is a boolean shortcut.
 
 **`autorizarPago()` en `Agenda.php`**: después de marcar el pago como `aprobado_admin`, cuenta los pagos restantes con `estado = 'PENDIENTE'` para esa reserva. Si quedan → `PARTIAL_PAYMENT` / `esta_pagado = false`. Si no quedan → `AUTHORIZED` / `esta_pagado = true`. Mismo criterio que `Pago.php` usa para el flujo automático de IA/MP.
@@ -84,7 +86,7 @@ States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`, `PENDING_REVIEW`, 
 
 `DRAFT` reservations (created when MP flow starts but not completed) are auto-cancelled when the browser session ends.
 
-**Cancelación automática por proximidad al turno (`mount()` de `Agenda.php`)**: reservas `PENDING` o `PARTIAL_PAYMENT` se eliminan cuando venció el plazo de pago (15 min antes del turno) y el turno aún no empezó, o cuando el turno ya terminó (90 min después). **Excepción:** si la reserva tiene algún pago con `estado_autorizacion = 'pendiente_admin'`, NO se elimina — el admin debe resolverla manualmente.
+**Cancelación automática por proximidad al turno (`mount()` de `Agenda.php`)**: reservas `PENDING` o `PARTIAL_PAYMENT` se eliminan solo cuando el turno ya terminó (90 min desde el inicio). Ya no se cancelan por vencimiento del plazo de pago (15 min antes del turno) — se quitó esa condición porque cancelaba reservas que aún podían recibir un pago legítimo antes de que empezara el partido. **Excepción:** si la reserva tiene algún pago con `estado_autorizacion = 'pendiente_admin'`, NO se elimina — el admin debe resolverla manualmente.
 
 ### Models
 
