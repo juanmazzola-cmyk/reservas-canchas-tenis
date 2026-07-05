@@ -5,7 +5,6 @@ namespace App\Livewire\Admin;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Models\Pago;
-use App\Models\Reserva;
 use Carbon\Carbon;
 
 #[Layout('layouts.app')]
@@ -33,14 +32,14 @@ class Comprobantes extends Component
 
         $cantPendientes = $pagos->count();
 
-        // Agrupar por reserva y filtrar reservas que no pasaron aún
+        // Agrupar por reserva
         $reservas = $pagos
             ->groupBy('reserva_id')
             ->map(fn($pagosDeLaReserva) => [
                 'reserva' => $pagosDeLaReserva->first()->reserva,
                 'pagos'   => $pagosDeLaReserva,
             ])
-            ->filter(fn($item) => $item['reserva'] !== null && !$this->reservaVencida($item['reserva']))
+            ->filter(fn($item) => $item['reserva'] !== null)
             ->sortBy(fn($item) => $this->parsearFechaHora($item['reserva']->dia, $item['reserva']->hora))
             ->values();
 
@@ -49,12 +48,6 @@ class Comprobantes extends Component
             : null;
 
         return view('livewire.admin.comprobantes', compact('reservas', 'modalPago', 'cantPendientes'));
-    }
-
-    private function reservaVencida(Reserva $r): bool
-    {
-        $ts = $this->parsearFechaHora($r->dia, $r->hora);
-        return $ts && $ts->addMinutes(90)->isPast();
     }
 
     private function parsearFechaHora(string $dia, string $hora): ?Carbon
