@@ -127,9 +127,13 @@ if (!Schema::hasColumn('tabla', 'columna')) {
 }
 ```
 
-**Correr migraciones en producción:** DonWeb no tiene terminal. Se usa un script PHP temporal en `public/` que lee el `.env` directamente y ejecuta el `ALTER TABLE` con PDO. Se accede por navegador y se borra con un commit inmediato. Ver historial de commits para el patrón exacto (`migrar-*.php`).
+**Correr migraciones en producción:** DonWeb no tiene terminal. Dos patrones posibles, ambos como script PHP temporal en `public/`, accedido por navegador y borrado con un commit inmediato después de usarlo (ver historial de commits para el patrón exacto):
+- **PDO directo** (`migrar-*.php`): lee el `.env` a mano y ejecuta el `ALTER TABLE` con PDO. Usado para cambios puntuales de columnas.
+- **Artisan bootstrap** (`run-migrate.php`, mismo formato que `limpiar-cache.php`): bootea el kernel de Laravel (`require bootstrap/app.php` + `$kernel->bootstrap()`) y corre `Artisan::call('migrate', ['--force' => true])`. Preferible cuando ya existe un archivo de migración normal en `database/migrations/` (por ejemplo, migraciones de índices) — corre la migración real en vez de replicar el DDL a mano.
 
 **Limpiar caché en producción:** Si hay errores de "ruta no definida" tras un deploy, es porque DonWeb tiene caché vieja. Usar script temporal `public/limpiar-cache.php` que corre `route:clear`, `config:clear`, `view:clear` vía Artisan. Ver historial de commits para el patrón.
+
+**Índices:** las tablas `reservas` y `pagos` no tenían índices propios más allá de la PK y las FK de `pagos` hasta la migración `2026_07_12_000001_add_indexes_to_reservas_and_pagos_tables.php`, que agregó: `reservas` → compuesto `(dia, cancha_id, hora)`, simple `estado`, simple `creador_id`; `pagos` → compuesto `(reserva_id, estado)`, compuesto `(estado_autorizacion, updated_at)`. Usa `Schema::hasIndex()` (Laravel 12) como guard, mismo criterio que `Schema::hasColumn()` para columnas. `jugadores_ids` es JSON y no tiene índice — los `whereJsonContains()` (chequeo de conflictos en `Agenda.php`/`MisTurnos.php`) hacen full scan; si el volumen crece, evaluar columna generada o tabla pivote.
 
 ### Frontend
 
