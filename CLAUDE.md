@@ -62,6 +62,7 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 | `Admin/Estadisticas.php` | Statistics: reservas del período, usuarios, pagos autorizados (desglose no-socios / con invitados), uso por cancha con top horarios. Tiene tres granularidades: **día** (default, filtra por número de día + mes del campo `dia`), **mes** (filtra por mes del campo `dia`) y **año** (filtra por `created_at` del año completo). El campo `dia` es un string como "lun 02 jun" sin año — el año se infiere de `created_at`. |
 | `Admin/Comprobantes.php` | Receipt verification queue — muestra solo pagos con `estado_autorizacion = 'pendiente_admin'`. El admin autoriza desde la grilla de Agenda (`autorizarPago()`). El botón "Autorizar pago" aparece cuando hay pagos `pendiente_admin` para esa reserva (independientemente del `estado` de la reserva — puede ser `PENDING_REVIEW` o `PARTIAL_PAYMENT`). La lista **no** filtra por antigüedad del turno: un pago `pendiente_admin` sigue apareciendo aunque el turno ya haya pasado, porque requiere resolución manual del admin sin importar la hora (antes se filtraban con un `reservaVencida()` de 90 min, lo que los ocultaba de la lista aunque el contador del badge los siguiera sumando — se sacó ese filtro). |
 | `NavBadge.php` | Badge en nav del admin (reservas pendientes de pago + socios nuevos) |
+| `OlvidePassword.php` | Recuperación de contraseña — busca al usuario por `dni` (no por teléfono), genera un código de 6 dígitos como password temporal (`must_change_password = true`) y arma un link `wa.me` al teléfono guardado en la BD para enviárselo. |
 
 ### Payment System
 
@@ -149,6 +150,8 @@ if (!Schema::hasColumn('tabla', 'columna')) {
 ### WhatsApp Links
 
 All WhatsApp links use prefix `54` (country code, no `+`). Phone numbers stored without leading 0 or 15. Display format: `+54 {number}`.
+
+En `OlvidePassword.php::enviar()` el link se armaba sin el prefijo `54` (bug corregido en `d31e29c`) — al construir un `wa.me/...` a partir de `$user->telefono`, siempre anteponer `'54' . preg_replace('/\D/', '', $telefono)`.
 
 ### Environment
 
