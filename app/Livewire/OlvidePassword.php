@@ -44,7 +44,7 @@ class OlvidePassword extends Component
         ]);
 
         // Construir URL de WhatsApp al teléfono del usuario
-        $tel = preg_replace('/\D/', '', $user->telefono);
+        $tel = '54' . preg_replace('/\D/', '', $user->telefono);
         $config = Configuracion::getConfig();
         $clubNombre = $config->club_name ?? 'el club';
         $msg = urlencode(
