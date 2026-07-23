@@ -22,15 +22,29 @@ class Comprobantes extends Component
         $this->modalPagoId = null;
     }
 
+    public function eliminarComprobante(int $pagoId): void
+    {
+        $pago = Pago::findOrFail($pagoId);
+
+        if ($pago->comprobante) {
+            \Storage::disk('public')->delete($pago->comprobante);
+            $pago->comprobante = null;
+            $pago->save();
+        }
+
+        if ($this->modalPagoId === $pagoId) {
+            $this->modalPagoId = null;
+        }
+    }
+
     public function render()
     {
         $pagos = Pago::whereNotNull('comprobante')
-            ->where('estado_autorizacion', 'pendiente_admin')
             ->with(['user', 'reserva'])
             ->orderByDesc('updated_at')
             ->get();
 
-        $cantPendientes = $pagos->count();
+        $cantPendientes = $pagos->where('estado_autorizacion', 'pendiente_admin')->count();
 
         // Agrupar por reserva
         $reservas = $pagos

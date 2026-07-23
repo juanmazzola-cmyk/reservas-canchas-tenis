@@ -5,7 +5,7 @@
             <span class="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $cantPendientes }}</span>
         @endif
     </div>
-    <p class="text-xs text-gray-500 -mt-2">Comprobantes pendientes de autorización</p>
+    <p class="text-xs text-gray-500 -mt-2">Todos los comprobantes cargados</p>
 
     @if($reservas->isEmpty())
     <div class="bg-white rounded-2xl p-8 text-center shadow-sm">
@@ -63,6 +63,13 @@
                             wire:click="abrirModal({{ $pago->id }})"
                             class="flex items-center gap-1 bg-[#0057a8] text-white text-xs px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition">
                             🧾 Ver
+                        </button>
+                        {{-- Botón eliminar comprobante --}}
+                        <button
+                            wire:click="eliminarComprobante({{ $pago->id }})"
+                            wire:confirm="¿Eliminar este comprobante? El pago queda sin archivo adjunto."
+                            class="flex items-center gap-1 bg-red-50 text-red-600 text-xs px-2 py-1.5 rounded-lg font-medium hover:bg-red-100 transition">
+                            🗑️
                         </button>
                     </div>
                 </div>
