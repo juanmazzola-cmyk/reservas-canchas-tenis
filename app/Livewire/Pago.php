@@ -332,7 +332,7 @@ class Pago extends Component
             $this->miPagoEstado  = 'PENDING_REVIEW';
             $this->turno_estado  = $nuevoEstado;
             $this->enviado       = true;
-            $this->dispatch('toast', message: 'Comprobante guardado. El administrador lo revisará.', type: 'info');
+            $this->dispatch('toast', message: 'Comprobante guardado. Avisale al administrador para que lo autorice.', type: 'info');
             return;
         }
 
