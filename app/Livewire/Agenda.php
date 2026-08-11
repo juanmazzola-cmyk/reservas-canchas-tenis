@@ -68,29 +68,6 @@ class Agenda extends Component
             ->where('created_at', '<', Carbon::now()->subMinutes(5))
             ->delete();
 
-        // Cancelar automáticamente reservas PENDING/PARTIAL_PAYMENT que llegaron a 15 min del turno sin completar el pago
-        $pendientes = Reserva::whereIn('estado', ['PENDING', 'PARTIAL_PAYMENT'])
-            ->whereHas('pagos')
-            ->get(['id', 'dia', 'hora']);
-        foreach ($pendientes as $rp) {
-            try {
-                $partes = explode(' ', $rp->dia);
-                if (count($partes) < 3) continue;
-                $meses = ['ene'=>1,'feb'=>2,'mar'=>3,'abr'=>4,'may'=>5,'jun'=>6,'jul'=>7,'ago'=>8,'sep'=>9,'oct'=>10,'nov'=>11,'dic'=>12];
-                $mes = $meses[strtolower($partes[2])] ?? null;
-                if (!$mes) continue;
-                $fechaHora = Carbon::create(Carbon::now()->year, $mes, (int)$partes[1], ...explode(':', $rp->hora));
-                $matchEnded = $fechaHora->copy()->addMinutes(90)->isPast();
-                // Cancelar solo después de que termine el turno (90 min desde el inicio)
-                $tienePendienteAdmin = $rp->pagos()
-                    ->where('estado_autorizacion', 'pendiente_admin')
-                    ->exists();
-                if (!$tienePendienteAdmin && $matchEnded) {
-                    $rp->delete();
-                }
-            } catch (\Exception $e) { continue; }
-        }
-
         $this->config = Configuracion::getConfig();
         $this->motivos = MotivoBloqueo::all(['id', 'emoji', 'descripcion'])->toArray();
         $this->cargarDias();
@@ -162,6 +139,7 @@ class Agenda extends Component
     public function cargarReservasYBloqueos(): void
     {
         $this->reservas = Reserva::where('dia', $this->diaSeleccionado)
+            ->with('pagos')
             ->get()
             ->toArray();
 
@@ -279,6 +257,7 @@ class Agenda extends Component
                     'estado'        => $r['estado'],
                     'comprobante'   => $r['comprobante'] ?? null,
                     'es_mia'        => $esMia,
+                    'tiene_pendiente_admin' => collect($r['pagos'] ?? [])->contains('estado_autorizacion', 'pendiente_admin'),
                 ];
             }
         }

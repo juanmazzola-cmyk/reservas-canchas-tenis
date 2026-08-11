@@ -210,6 +210,8 @@
                                         @if(!$celda['esta_pagado'])
                                             @if($esParcial)
                                                 <div class="text-amber-700 font-bold text-[10px] mt-0.5 text-center">Pago pend.</div>
+                                            @elseif(auth()->user()->rol === 'admin' && !$celda['tiene_pendiente_admin'])
+                                                <div class="text-amber-700 font-bold text-[10px] mt-0.5 text-center">Pago pend.</div>
                                             @else
                                                 <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">Falta aut.</div>
                                             @endif
