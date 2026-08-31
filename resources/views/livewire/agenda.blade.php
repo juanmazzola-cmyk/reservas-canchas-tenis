@@ -247,8 +247,15 @@
                                     </div>
                                     @else
                                     <div class="w-full rounded border bg-gray-100 border-gray-200 px-1.5 py-1 text-[10px] leading-snug">
-                                        @foreach($celda['apellidos'] as $ap)
-                                            <div class="truncate text-center font-medium {{ str_ends_with($ap, ' *') ? 'text-orange-500' : 'text-gray-600' }}">{{ $ap }}</div>
+                                        @foreach($celda['jugadores'] as $jug)
+                                            @php
+                                                $clsJug = match($jug['tipo']) {
+                                                    'socio'    => 'text-green-600',
+                                                    'invitado' => 'text-orange-500',
+                                                    default    => 'text-black',
+                                                };
+                                            @endphp
+                                            <div class="truncate text-center font-medium {{ $clsJug }}">{{ $jug['apellido'] }}</div>
                                         @endforeach
                                         @if(!$celda['esta_pagado'])
                                             @if($celda['tiene_pendiente_admin'])
