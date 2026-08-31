@@ -265,6 +265,11 @@ class MisTurnos extends Component
         $reserva = Reserva::find($reservaId);
         if (!$reserva || $reserva->creador_id !== Auth::id()) return;
 
+        if (in_array($reserva->estado, ['PENDING', 'PARTIAL_PAYMENT']) && $this->estaVencida($reserva->dia, $reserva->hora)) {
+            $this->dispatch('toast', message: 'Esta reserva tiene un pago pendiente vencido. Solo el administrador puede cancelarla.', type: 'error');
+            return;
+        }
+
         $this->cancelarReservaId = $reservaId;
         $this->modalCancelar = true;
     }
@@ -273,6 +278,11 @@ class MisTurnos extends Component
     {
         $reserva = Reserva::find($this->cancelarReservaId);
         if ($reserva && $reserva->creador_id === Auth::id()) {
+            if (in_array($reserva->estado, ['PENDING', 'PARTIAL_PAYMENT']) && $this->estaVencida($reserva->dia, $reserva->hora)) {
+                $this->modalCancelar = false;
+                $this->dispatch('toast', message: 'Esta reserva tiene un pago pendiente vencido. Solo el administrador puede cancelarla.', type: 'error');
+                return;
+            }
             $reserva->delete();
         }
 

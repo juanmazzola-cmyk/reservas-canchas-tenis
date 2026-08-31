@@ -223,7 +223,14 @@ class Agenda extends Component
         // Vencida y sin_anticipacion solo aplican a usuarios
         if ($rol === 'usuario') {
             if ($this->estaCeldaVencida($hora)) {
-                return ['tipo' => 'vencida'];
+                $tienePagoPendiente = collect($this->reservas)->contains(
+                    fn($r) => $r['hora'] === $hora
+                        && $r['cancha_id'] == $cancha
+                        && in_array($r['estado'], ['PENDING', 'PARTIAL_PAYMENT'])
+                );
+                if (!$tienePagoPendiente) {
+                    return ['tipo' => 'vencida'];
+                }
             }
         }
 
