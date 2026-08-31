@@ -223,9 +223,10 @@
                                         $labelPago = match(true) {
                                             $celda['esta_pagado']              => null,
                                             $estadoCelda === 'AUTHORIZED'      => null,
+                                            $estadoCelda === 'PENDING_REVIEW'  => ['txt' => 'En revisión',  'cls' => 'text-purple-600'],
+                                            $celda['tiene_pendiente_admin']    => ['txt' => 'Falta aut.',   'cls' => 'text-orange-500'],
                                             $estadoCelda === 'PARTIAL_PAYMENT' => ['txt' => 'Pago parcial', 'cls' => 'text-amber-600'],
                                             $estadoCelda === 'PENDING'         => ['txt' => 'Pago pend.',  'cls' => 'text-amber-600'],
-                                            $estadoCelda === 'PENDING_REVIEW'  => ['txt' => 'En revisión',  'cls' => 'text-purple-600'],
                                             default                            => ['txt' => 'Falta pago',   'cls' => 'text-red-500'],
                                         };
                                     @endphp
@@ -250,7 +251,11 @@
                                             <div class="truncate text-center font-medium {{ str_ends_with($ap, ' *') ? 'text-orange-500' : 'text-gray-600' }}">{{ $ap }}</div>
                                         @endforeach
                                         @if(!$celda['esta_pagado'])
-                                            <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">Falta aut.</div>
+                                            @if($celda['tiene_pendiente_admin'])
+                                                <div class="text-orange-500 font-semibold text-[10px] mt-0.5 text-center">Falta aut.</div>
+                                            @else
+                                                <div class="text-amber-700 font-bold text-[10px] mt-0.5 text-center">Pago pend.</div>
+                                            @endif
                                         @endif
                                     </div>
                                     @endif
