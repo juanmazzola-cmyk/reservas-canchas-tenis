@@ -33,6 +33,7 @@ class Configuracion extends Model
         'mp_access_token',
         'mp_public_key',
         'anthropic_credits_date',
+        'anthropic_credits_amount',
     ];
 
     protected function casts(): array
@@ -44,6 +45,7 @@ class Configuracion extends Model
             'carnet_enabled'         => 'boolean',
             'non_member_price'       => 'decimal:2',
             'anthropic_credits_date' => 'date',
+            'anthropic_credits_amount' => 'decimal:2',
         ];
     }
 

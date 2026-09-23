@@ -36,6 +36,7 @@ class Configuracion extends Component
     public string $mp_access_token = '';
     public string $mp_public_key = '';
     public string $anthropic_credits_date = '';
+    public string $anthropic_credits_amount = '';
 
     public string $nuevoSlot = '';
 
@@ -68,6 +69,9 @@ class Configuracion extends Component
         $this->mp_public_key                = $config->mp_public_key ?? '';
         $this->anthropic_credits_date       = $config->anthropic_credits_date
             ? $config->anthropic_credits_date->format('Y-m-d')
+            : '';
+        $this->anthropic_credits_amount     = $config->anthropic_credits_amount !== null
+            ? (string) $config->anthropic_credits_amount
             : '';
     }
 
@@ -161,12 +165,14 @@ class Configuracion extends Component
             'admin_whatsapp'              => 'nullable|string|max:30',
             'payment_alias'               => 'nullable|string|max:100',
             'payment_link'                => 'nullable|url|max:500',
+            'anthropic_credits_amount'    => 'nullable|numeric|min:0|max:999999.99',
         ], [
             'club_name.required'                   => 'El nombre del club es obligatorio.',
             'court_count.required'                 => 'La cantidad de canchas es obligatoria.',
             'non_member_price.required'            => 'El precio para no socios es obligatorio.',
             'advance_booking_limit_hours.required' => 'Las horas de anticipación son obligatorias.',
             'payment_link.url'                     => 'El link de pago debe ser una URL válida.',
+            'anthropic_credits_amount.numeric'     => 'El monto de créditos debe ser un número (ej: 5.00).',
         ]);
 
         $config = ConfigModel::getConfig();
@@ -195,6 +201,7 @@ class Configuracion extends Component
             'mp_access_token'              => $this->mp_access_token ?: null,
             'mp_public_key'                => $this->mp_public_key ?: null,
             'anthropic_credits_date'       => $this->anthropic_credits_date ?: null,
+            'anthropic_credits_amount'     => $this->anthropic_credits_amount !== '' ? (float) $this->anthropic_credits_amount : null,
         ]);
 
         $this->dispatch('toast', message: 'Configuración guardada correctamente.', type: 'success');
@@ -220,7 +227,20 @@ class Configuracion extends Component
             $alertaVencimiento = $diasRestantes <= 5;
         }
 
-        return compact('total', 'confirmadas', 'revision', 'costoEstimado', 'diasRestantes', 'vencimiento', 'alertaVencimiento');
+        // Saldo estimado: solo descuenta verificaciones posteriores a la última carga de créditos
+        $saldoEstimado = null;
+        $alertaSaldo   = false;
+        if ($config->anthropic_credits_amount !== null) {
+            $verificacionesDesdeCarga = $config->anthropic_credits_date
+                ? \App\Models\Pago::whereNotNull('verificacion_ia')
+                    ->where('updated_at', '>=', $config->anthropic_credits_date->copy()->startOfDay())
+                    ->count()
+                : $total;
+            $saldoEstimado = round((float) $config->anthropic_credits_amount - ($verificacionesDesdeCarga * 0.002), 2);
+            $alertaSaldo   = $saldoEstimado < 1;
+        }
+
+        return compact('total', 'confirmadas', 'revision', 'costoEstimado', 'diasRestantes', 'vencimiento', 'alertaVencimiento', 'saldoEstimado', 'alertaSaldo');
     }
 
     public function render()

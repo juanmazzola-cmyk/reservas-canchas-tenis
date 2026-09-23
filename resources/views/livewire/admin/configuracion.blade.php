@@ -343,6 +343,28 @@
             <p class="text-lg font-bold text-gray-700">~${{ number_format($statsIA['costoEstimado'], 3) }} USD</p>
         </div>
 
+        {{-- Saldo estimado --}}
+        <div class="mb-4">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Monto cargado en Anthropic (USD)</label>
+            <input type="number" wire:model="anthropic_credits_amount" min="0" step="0.01" placeholder="Ej: 5.00"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] @error('anthropic_credits_amount') border-red-400 @enderror"/>
+            @error('anthropic_credits_amount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+
+            @if($statsIA['saldoEstimado'] !== null)
+            <div class="mt-2 rounded-xl px-4 py-3 flex items-center justify-between {{ $statsIA['alertaSaldo'] ? 'bg-red-50 border border-red-300' : 'bg-gray-50' }}">
+                <div>
+                    <p class="text-xs font-semibold {{ $statsIA['alertaSaldo'] ? 'text-red-700' : 'text-gray-600' }}">
+                        {{ $statsIA['alertaSaldo'] ? '⚠️ Saldo estimado bajo' : 'Saldo estimado restante' }}
+                    </p>
+                    <p class="text-[10px] {{ $statsIA['alertaSaldo'] ? 'text-red-500' : 'text-gray-400' }} mt-0.5">Monto cargado − verificaciones desde la fecha de carga × $0.002</p>
+                </div>
+                <p class="text-lg font-bold {{ $statsIA['alertaSaldo'] ? 'text-red-600' : 'text-gray-700' }}">${{ number_format($statsIA['saldoEstimado'], 2) }} USD</p>
+            </div>
+            @else
+            <p class="text-[10px] text-gray-400 mt-1">Ingresá el monto que cargaste para ver el saldo estimado.</p>
+            @endif
+        </div>
+
         {{-- Fecha de carga de créditos --}}
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Fecha de carga de créditos</label>
