@@ -122,6 +122,8 @@ En producción (DonWeb sin terminal): phpMyAdmin → `SELECT * FROM audits ORDER
 
 Migrations en `database/migrations/`. No seeders para producción — configuración vía admin UI.
 
+**Prepared statements emulados (`config/database.php`, conexión `mysql`, `8ee81bb`)**: `PDO::ATTR_EMULATE_PREPARES => true` en `options` (Laravel por defecto usa `false`). Evita el error MySQL 1615 "Prepared statement needs to be re-prepared", típico de hosting compartido (DonWeb) donde el servidor invalida los prepared statements y no se puede tocar `table_definition_cache`. Los bindings se siguen escapando (sin riesgo de SQL injection) y con PHP 8.1+ los tipos devueltos no cambian (ints siguen siendo `int`; decimales y JSON siguen como string) — verificado comparando consultas antes/después. Se descartó ampliar el `LostConnectionDetector` para reconectar/reintentar: Laravel no reintenta dentro de transacciones (`DB::transaction` en `Agenda.php`) y no ataca la causa. Como es config, en producción requiere `config:clear` si hay config cacheada.
+
 **Regla importante:** toda migración que use `Schema::table` para agregar columnas debe incluir un guard `Schema::hasColumn()` antes de ejecutar el cambio. Esto es necesario porque la BD de producción puede tener columnas aplicadas manualmente que el sistema de migraciones no registró.
 
 ```php
