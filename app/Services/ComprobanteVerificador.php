@@ -125,7 +125,14 @@ PROMPT;
             }
 
             $text = $response->json('content.0.text', '');
-            $data = json_decode($text, true);
+
+            // La IA a veces envuelve el JSON en ```json ... ``` o agrega texto alrededor:
+            // se extrae solo el objeto, desde la primera "{" hasta la última "}"
+            $inicio = strpos($text, '{');
+            $fin    = strrpos($text, '}');
+            $json   = ($inicio !== false && $fin !== false) ? substr($text, $inicio, $fin - $inicio + 1) : $text;
+
+            $data = json_decode($json, true);
 
             if (!is_array($data)) {
                 Log::warning('ComprobanteVerificador: respuesta no parseable', ['text' => $text]);
