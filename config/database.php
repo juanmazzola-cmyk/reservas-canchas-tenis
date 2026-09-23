@@ -61,7 +61,10 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+            ]) + [
+                // Evita el error MySQL 1615 "Prepared statement needs to be re-prepared" (hosting compartido)
+                PDO::ATTR_EMULATE_PREPARES => true,
+            ] : [],
         ],
 
         'mariadb' => [
