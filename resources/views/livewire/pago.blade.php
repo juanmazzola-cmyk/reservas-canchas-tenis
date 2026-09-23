@@ -135,11 +135,16 @@
         </div>
         @endif
         <button type="button" onclick="document.getElementById('mp-modal-1').style.display='flex'"
-           class="bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 hover:bg-[#0082c0] transition-colors">
+           tabindex="-1" aria-disabled="true"
+           class="relative overflow-hidden pointer-events-none bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 hover:bg-[#0082c0] transition-colors">
             <svg viewBox="0 0 48 48" class="w-10 h-10 fill-white flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
                 <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm-2 28.5l-7-7 2.12-2.12L22 28.26l8.88-8.88L33 21.5l-11 11z"/>
             </svg>
             <p class="text-white font-bold text-xs text-center leading-tight">Pagar con<br>Mercado Pago</p>
+            {{-- Sello "DESACTIVADO" --}}
+            <span class="absolute top-[18px] -right-[40px] w-[150px] rotate-45 bg-red-600/90 text-white text-[9px] font-black tracking-[0.12em] text-center py-0.5 shadow-md border-y-2 border-white/70">
+                DESACTIVADO
+            </span>
         </button>
     </div>
 
@@ -487,11 +492,16 @@
 
         {{-- Mercado Pago --}}
         <button type="button" onclick="document.getElementById('mp-modal-2').style.display='flex'"
-           class="bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 hover:bg-[#0082c0] transition-colors">
+           tabindex="-1" aria-disabled="true"
+           class="relative overflow-hidden pointer-events-none bg-[#009EE3] rounded-2xl shadow-sm px-3 py-3 flex flex-col items-center justify-center gap-2 hover:bg-[#0082c0] transition-colors">
             <svg viewBox="0 0 48 48" class="w-10 h-10 fill-white flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
                 <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm-2 28.5l-7-7 2.12-2.12L22 28.26l8.88-8.88L33 21.5l-11 11z"/>
             </svg>
             <p class="text-white font-bold text-xs text-center leading-tight">Pagar con<br>Mercado Pago</p>
+            {{-- Sello "DESACTIVADO" --}}
+            <span class="absolute top-[18px] -right-[40px] w-[150px] rotate-45 bg-red-600/90 text-white text-[9px] font-black tracking-[0.12em] text-center py-0.5 shadow-md border-y-2 border-white/70">
+                DESACTIVADO
+            </span>
         </button>
 
     </div>
