@@ -134,6 +134,8 @@ if (!Schema::hasColumn('tabla', 'columna')) {
 
 **Limpiar caché en producción:** Si hay errores de "ruta no definida" tras un deploy, es porque DonWeb tiene caché vieja. Usar script temporal `public/limpiar-cache.php` que corre `route:clear`, `config:clear`, `view:clear` vía Artisan. Ver historial de commits para el patrón.
 
+**Cachear en producción:** script temporal `public/artisan-cache.php` (mismo formato que `limpiar-cache.php`) que corre `config:cache`, `route:cache`, `view:cache` y `event:cache` vía Artisan; se sube, se accede por navegador y se borra con un commit inmediato (ver `fa6092e` / `dfa7675`). **Ojo:** con `config:cache` activo, cambios en el `.env` de producción no se aplican hasta volver a correr este script o `limpiar-cache.php` (que no limpia `event:cache` — agregar `event:clear` si hace falta). No correrlo en localhost (dejaría cacheada la config local).
+
 **Índices:** las tablas `reservas` y `pagos` no tenían índices propios más allá de la PK y las FK de `pagos` hasta la migración `2026_07_12_000001_add_indexes_to_reservas_and_pagos_tables.php`, que agregó: `reservas` → compuesto `(dia, cancha_id, hora)`, simple `estado`, simple `creador_id`; `pagos` → compuesto `(reserva_id, estado)`, compuesto `(estado_autorizacion, updated_at)`. Usa `Schema::hasIndex()` (Laravel 12) como guard, mismo criterio que `Schema::hasColumn()` para columnas. `jugadores_ids` es JSON y no tiene índice — los `whereJsonContains()` (chequeo de conflictos en `Agenda.php`/`MisTurnos.php`) hacen full scan; si el volumen crece, evaluar columna generada o tabla pivote.
 
 ### Frontend
