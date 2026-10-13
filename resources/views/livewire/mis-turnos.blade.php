@@ -186,7 +186,7 @@
                     <div class="grid grid-cols-4 gap-1.5 max-h-44 overflow-y-auto pr-1">
                         @foreach($horasDisponibles as $hora)
                         <button
-                            wire:click="$set('reprogramarHora', '{{ $hora }}')"
+                            wire:click="seleccionarHoraReprogramar('{{ $hora }}')"
                             class="py-1.5 rounded-lg text-xs font-medium transition
                                 {{ $reprogramarHora === $hora
                                     ? 'bg-[#0057a8] text-white'
@@ -216,6 +216,9 @@
         </div>
     </div>
     @endif
+
+    {{-- Aviso fichas de luz (horario nocturno) --}}
+    @if($avisoFichasLuz) @include('partials.aviso-fichas-luz') @endif
 
     {{-- MODAL: Confirmar cancelar --}}
     @if($modalCancelar)

@@ -116,6 +116,19 @@
                 </button>
             </div>
             @error('nuevoSlot') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+
+            <div class="mt-4 pt-3 border-t border-gray-100">
+                <label class="block text-xs font-medium text-gray-600 mb-1">⚡ Horario nocturno desde (fichas de luz)</label>
+                <select wire:model="horario_nocturno"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0057a8] font-mono @error('horario_nocturno') border-red-400 @enderror">
+                    <option value="">— Sin aviso —</option>
+                    @foreach($horarios as $slot)
+                        <option value="{{ $slot }}">{{ $slot }}</option>
+                    @endforeach
+                </select>
+                <p class="text-[10px] text-gray-400 mt-0.5">Al elegir un turno desde este horario, el jugador ve un aviso para adquirir fichas de luz.</p>
+                @error('horario_nocturno') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
         </div>
 
         {{-- Pagos --}}

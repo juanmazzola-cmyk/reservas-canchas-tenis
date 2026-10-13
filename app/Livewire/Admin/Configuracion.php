@@ -37,6 +37,7 @@ class Configuracion extends Component
     public string $mp_public_key = '';
     public string $anthropic_credits_date = '';
     public string $anthropic_credits_amount = '';
+    public string $horario_nocturno = '';
 
     public string $nuevoSlot = '';
 
@@ -73,6 +74,7 @@ class Configuracion extends Component
         $this->anthropic_credits_amount     = $config->anthropic_credits_amount !== null
             ? (string) $config->anthropic_credits_amount
             : '';
+        $this->horario_nocturno             = $config->horario_nocturno ?? '';
     }
 
     private function getProximosDias(): array
@@ -166,6 +168,7 @@ class Configuracion extends Component
             'payment_alias'               => 'nullable|string|max:100',
             'payment_link'                => 'nullable|url|max:500',
             'anthropic_credits_amount'    => 'nullable|numeric|min:0|max:999999.99',
+            'horario_nocturno'            => 'nullable|in:' . implode(',', $this->horarios),
         ], [
             'club_name.required'                   => 'El nombre del club es obligatorio.',
             'court_count.required'                 => 'La cantidad de canchas es obligatoria.',
@@ -173,6 +176,7 @@ class Configuracion extends Component
             'advance_booking_limit_hours.required' => 'Las horas de anticipación son obligatorias.',
             'payment_link.url'                     => 'El link de pago debe ser una URL válida.',
             'anthropic_credits_amount.numeric'     => 'El monto de créditos debe ser un número (ej: 5.00).',
+            'horario_nocturno.in'                  => 'El horario nocturno debe ser uno de los horarios disponibles.',
         ]);
 
         $config = ConfigModel::getConfig();
@@ -202,6 +206,7 @@ class Configuracion extends Component
             'mp_public_key'                => $this->mp_public_key ?: null,
             'anthropic_credits_date'       => $this->anthropic_credits_date ?: null,
             'anthropic_credits_amount'     => $this->anthropic_credits_amount !== '' ? (float) $this->anthropic_credits_amount : null,
+            'horario_nocturno'             => $this->horario_nocturno ?: null,
         ]);
 
         $this->dispatch('toast', message: 'Configuración guardada correctamente.', type: 'success');

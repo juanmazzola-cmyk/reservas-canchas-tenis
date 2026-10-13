@@ -34,6 +34,7 @@ class Configuracion extends Model
         'mp_public_key',
         'anthropic_credits_date',
         'anthropic_credits_amount',
+        'horario_nocturno',
     ];
 
     protected function casts(): array
@@ -65,5 +66,11 @@ class Configuracion extends Model
             'advance_booking_limit_hours' => 96,
             'announcement_enabled' => false,
         ]);
+    }
+
+    // Horas "HH:MM": la comparación de strings respeta el orden horario
+    public function esHorarioNocturno(string $hora): bool
+    {
+        return $this->horario_nocturno !== null && $hora >= $this->horario_nocturno;
     }
 }

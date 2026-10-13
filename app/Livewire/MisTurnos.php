@@ -29,6 +29,8 @@ class MisTurnos extends Component
     public array $horarios = [];
     public array $canchas = [];
     public array $horasDisponibles = [];
+    public bool $avisoFichasLuz = false;
+    public bool $avisoFichasLuzMostrado = false; // una sola vez por apertura del modal
 
     public function mount(): void
     {
@@ -300,8 +302,19 @@ class MisTurnos extends Component
         $this->reprogramarCancha = $reserva->cancha_id;
         $this->reprogramarDia = $this->dias[0]['clave'];
         $this->reprogramarHora = '';
+        $this->avisoFichasLuz = false;
+        $this->avisoFichasLuzMostrado = false;
         $this->actualizarHorasDisponibles();
         $this->modalReprogramar = true;
+    }
+
+    public function seleccionarHoraReprogramar(string $hora): void
+    {
+        $this->reprogramarHora = $hora;
+        if (!$this->avisoFichasLuzMostrado && Configuracion::getConfig()->esHorarioNocturno($hora)) {
+            $this->avisoFichasLuz = true;
+            $this->avisoFichasLuzMostrado = true;
+        }
     }
 
     public function seleccionarCanchaReprogramar(int $canchaId): void

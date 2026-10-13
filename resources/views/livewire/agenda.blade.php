@@ -520,6 +520,9 @@
     </div>
     @endif
 
+    {{-- Aviso fichas de luz (horario nocturno) --}}
+    @if($avisoFichasLuz) @include('partials.aviso-fichas-luz') @endif
+
     {{-- ═══════════════════════════════════════════════════
          MODAL: Detalle reserva
     ══════════════════════════════════════════════════════ --}}

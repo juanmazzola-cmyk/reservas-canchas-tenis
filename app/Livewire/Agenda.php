@@ -35,6 +35,7 @@ class Agenda extends Component
     public array $resultadosBusqueda = [];
     public array $jugadoresSeleccionados = [];
     public array $invitadoApellidos = []; // [1 => 'apellido', 2 => 'apellido', ...]
+    public bool $avisoFichasLuz = false;
 
     // Modal detalle reserva
     public bool $modalDetalle = false;
@@ -338,6 +339,7 @@ class Agenda extends Component
 
         $this->verificarConflictos();
         $this->modalReserva = true;
+        $this->avisoFichasLuz = ($this->config ??= Configuracion::getConfig())->esHorarioNocturno($hora);
     }
 
     public function buscarJugador(): void

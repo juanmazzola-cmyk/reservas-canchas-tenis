@@ -64,6 +64,10 @@ Three roles: `admin`, `control`, `usuario`. Enforced in Livewire components via 
 | `NavBadge.php` | Badge en nav del admin (reservas pendientes de pago + socios nuevos) |
 | `OlvidePassword.php` | Recuperación de contraseña — busca al usuario por `dni` (no por teléfono), genera un código de 6 dígitos como password temporal (`must_change_password = true`) y arma un link `wa.me` al teléfono guardado en la BD para enviárselo. |
 
+### Aviso de fichas de luz (2026-10-13)
+
+El admin elige en Config (tarjeta "Horarios disponibles", select con los slots) el `horario_nocturno`. Cuando un jugador (socio o no socio) toca una celda libre con hora >= ese valor en `Agenda::seleccionarTurno()`, se setea `$avisoFichasLuz = true` y se muestra un modal informativo encima de "Reservar turno" ("⚡ No olvides adquirir fichas de luz, disponibles en la entrada o en Secretaría.", con X y botón "Cerrar"). En `MisTurnos`, al reprogramar, `seleccionarHoraReprogramar()` lo muestra **una sola vez por apertura del modal** (`$avisoFichasLuzMostrado`, se resetea en `confirmarReprogramar()`). El modal es un partial compartido: `resources/views/partials/aviso-fichas-luz.blade.php` (requiere la propiedad `$avisoFichasLuz` en el componente).
+
 ### Payment System
 
 Two payment paths:
@@ -100,7 +104,7 @@ States on `Reserva.estado`: `DRAFT`, `AUTHORIZED`, `PENDING`, `PENDING_REVIEW`, 
 - **User**: roles, WhatsApp (stored without 0/15 prefix, displayed with +54), `forzar_cambio_password`, `es_socio`, `nro_socio`, `grupo_sanguineo` (nullable, optional — A+/A-/B+/B-/AB+/AB-/O+/O-), `foto_carnet` (nullable, path in `storage/public/fotos-carnet/`)
 - **Reserva**: `cancha_id` (integer), `jugadores_ids` (array of user IDs), `invitados` (array of `{slot, apellido}` for non-registered guests), `creador_id`, `esta_pagado`, `estado`, MP fields
 - **Pago**: `reserva_id`, `user_id`, `monto`, `estado`, `estado_autorizacion`, `motivo_rechazo`, `autorizado_por`, `autorizado_at`, `verificacion_ia` (JSON del resultado IA), `comprobante` (path). When a reserva has invitados, ONE Pago is created for the creator covering all non-socios + guests. Without invitados, one Pago per non-socio.
-- **Configuracion**: single-row config table, retrieved via `Configuracion::getConfig()`. Key fields: `court_count`, `cancha_names` (array), `slots` (array of time strings), `non_member_price`, `carnet_enabled` (boolean, habilita/deshabilita el sistema de carnets), `anthropic_credits_date` (date), `anthropic_credits_amount` (decimal 8,2, nullable — monto en USD cargado en Anthropic)
+- **Configuracion**: single-row config table, retrieved via `Configuracion::getConfig()`. Key fields: `court_count`, `cancha_names` (array), `slots` (array of time strings), `non_member_price`, `carnet_enabled` (boolean, habilita/deshabilita el sistema de carnets), `anthropic_credits_date` (date), `anthropic_credits_amount` (decimal 8,2, nullable — monto en USD cargado en Anthropic), `horario_nocturno` (string `HH:MM`, nullable — desde qué slot se requieren fichas de luz; `null` = sin aviso). Helper `esHorarioNocturno($hora)` compara strings `HH:MM`.
 - **Bloqueo**: court blocks with `MotivoBloqueo` enum
 - **Notification** (Laravel built-in): notificaciones en app para admins. Actualmente: `SocioRegistrado` — se dispara cuando un usuario se registra como socio de tenis. Se muestra como badge en el ícono "Usuarios" del nav y como panel en `Admin/Usuarios`.
 
